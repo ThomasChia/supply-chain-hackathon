@@ -32,3 +32,27 @@ for r in restaurants:
 
 # Define the flow conservation constraint for each vendor (if applicable)
 # Add additional constraints as needed for your specific scenario
+
+
+# Solve the optimization problem
+problem.solve()
+
+# Check the status of the solution
+if problem.status == 1:  # "Optimal" status code
+    # Print the optimal solution
+    for v in vendors:
+        for w in warehouses:
+            if supply[v][w].varValue > 0:
+                print(f"Supply {supply[v][w].varValue} units from {v} to {w}")
+
+    for w in warehouses:
+        if warehouse_inventory[w].varValue > 0:
+            print(f"Warehouse {w} inventory: {warehouse_inventory[w].varValue} units")
+
+    for r in restaurants:
+        if restaurant_demand[r].varValue > 0:
+            print(f"Restaurant {r} demand: {restaurant_demand[r].varValue} units")
+
+    print(f"Total cost: {problem.objective.value()}")
+else:
+    print("No optimal solution found.")
