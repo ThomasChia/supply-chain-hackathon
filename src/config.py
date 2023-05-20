@@ -20,7 +20,7 @@ vendors = {
 warehouses = {
     "warehouse1": {"storage_cost": 5, "inventory_capacity": 100},
     "warehouse2": {"storage_cost": 7, "inventory_capacity": 150},
-    "warehouse3": {"storage_cost": 9, "inventory_capacity": 200}
+    "warehouse3": {"storage_cost": 9, "inventory_capacity": 2000}
 }
 
 restaurants = {
