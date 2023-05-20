@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 class Cost(ABC):
     def __init__(self):
-        self.route_tuple = None
-        self.cost = None
+        self.route_tuple = ('', '')
+        self.cost = 0
 
 @dataclass
 class SupplierWarehouseCost(Cost):

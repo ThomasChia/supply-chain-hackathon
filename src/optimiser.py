@@ -9,13 +9,15 @@ class SupplyChainOptimization:
                  vendors: List[Vendor],
                  warehouses: List[Warehouse], 
                  restaurants: List[Restaurant], 
-                 distance_costs: List[DistanceCost], 
-                 distribution_costs: List[DistributionCost]):
+                 supplier_warehouse_costs: List[SupplierWarehouseCost], 
+                 warehouse_restaurant_costs: List[WarehouseRestaurantCost]):
         self.vendors = vendors
         self.warehouses = warehouses
         self.restaurants = restaurants
-        self.distance_costs = distance_costs
-        self.distribution_costs = distribution_costs
+        self.supplier_warehouse_costs = supplier_warehouse_costs
+        self.warehouse_restaurant_costs = warehouse_restaurant_costs
+        self.supplier_warehouse_mapper = RouteCostMapper()
+        self.warehouse_restaurant_mapper = RouteCostMapper()
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
         self.supply = LpVariable.dicts("supply", [(v.name, w.name) for v in vendors for w in warehouses], lowBound=0, cat='Continuous')
         self.distribution = LpVariable.dicts("distance", [(w.name, r.name) for w in warehouses for r in restaurants], lowBound=0, cat="Integer")
@@ -24,7 +26,7 @@ class SupplyChainOptimization:
         return lpSum(self.supply[(v.name, w.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses)
     
     def get_supply_to_warehouse_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * distance_cost.cost)
+        return lpSum(self.supply[(v.name, w.name)] * self.supplier_warehouse_costs.cost for v in self.vendors for w in self.warehouses)
         # return lpSum(self.supply[(v, w)] * distance_cost.cost for v in self.vendors for w in self.warehouses for distance_cost in self.distance_costs if distance_cost.vendor == v and distance_cost.warehouse == w)
     
     def get_warehouse_to_restaurant_cost(self):
