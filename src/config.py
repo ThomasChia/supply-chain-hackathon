@@ -24,8 +24,8 @@ warehouses = {
 }
 
 restaurants = {
-    "restaurant1": {"transport_cost": 7},
-    "restaurant2": {"transport_cost": 6},
+    "restaurant1": {"restaurant_demand": 100, "transport_cost": 7, "inventory_capacity": 100},
+    "restaurant2": {"restaurant_demand": 300, "transport_cost": 6, "inventory_capacity": 150},
     # Add more restaurants as needed
 }
 
@@ -36,9 +36,21 @@ distance_cost = {
     ("vendor2", "warehouse1"): {"cost": 12},
     ("vendor2", "warehouse2"): {"cost": 13},
     ("vendor2", "warehouse3"): {"cost": 10},
-    ("vendor3", "warehouse1"): {"cost": 8},
+    ("vendor3", "warehouse1"): {"cost": 20},
     ("vendor3", "warehouse2"): {"cost": 10},
-    ("vendor3", "warehouse3"): {"cost": 9},
+    ("vendor3", "warehouse3"): {"cost": 18},
+}
+
+distribution_cost = {
+    ("warehouse1", "restaurant1"): {"cost": 1},
+    ("warehouse1", "restaurant2"): {"cost": 6},
+    ("warehouse1", "restaurant3"): {"cost": 9},
+    ("warehouse2", "restaurant1"): {"cost": 12},
+    ("warehouse2", "restaurant2"): {"cost": 13},
+    ("warehouse2", "restaurant3"): {"cost": 10},
+    ("warehouse3", "restaurant1"): {"cost": 20},
+    ("warehouse3", "restaurant2"): {"cost": 10},
+    ("warehouse3", "restaurant3"): {"cost": 18},
 }
 
 # Example distance data (you'll need to provide actual data)
