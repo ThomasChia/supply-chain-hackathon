@@ -3,17 +3,20 @@ from mapper import RouteCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize
 from sites import Vendor, Warehouse, Restaurant
 from typing import List
+from vehicles import Vehicle
 
 class SupplyChainOptimisation:
     def __init__(self,
                  vendors: List[Vendor],
                  warehouses: List[Warehouse], 
-                 restaurants: List[Restaurant], 
+                 restaurants: List[Restaurant],
+                 vehicles: List[Vehicle], 
                  supplier_warehouse_costs: List[SupplierWarehouseCost], 
                  warehouse_restaurant_costs: List[WarehouseRestaurantCost]):
         self.vendors = vendors
         self.warehouses = warehouses
         self.restaurants = restaurants
+        self.vehicles = vehicles
         self.supplier_warehouse_mapper = RouteCostMapper(supplier_warehouse_costs)
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_costs)
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
@@ -113,6 +116,17 @@ if __name__ == "__main__":
         Restaurant("Restaurant 2", 1200, 'Rome'),
     ]
 
+    vehicles = [
+        Vehicle("Cluck Logistics", "Class III Diesel Refrigerated Van", 1000, 10, 100),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", 1500, 15, 150),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", 2000, 20, 200),
+        Vehicle("Cluck Logistics", "Refrigerated Electric Van", 2500, 25, 250),
+        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", 1200, 12, 120),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", 1700, 17, 170),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", 2200, 22, 220),
+        Vehicle("Feather Express", "Refrigerated Electric Van", 2700, 27, 270)
+    ]
+
     supplier_warehouse_costs = [
         SupplierWarehouseCost((vendors[0].name, warehouses[0].name), 1),
         SupplierWarehouseCost((vendors[0].name, warehouses[1].name), 2),
@@ -140,10 +154,11 @@ if __name__ == "__main__":
         WarehouseRestaurantCost((warehouses[2].name, restaurants[1].name), 6),
     ]
 
-    supply_chain_optimizer = SupplyChainOptimisation(vendors,
-                                                     warehouses,
-                                                     restaurants,
-                                                     supplier_warehouse_costs,
-                                                     warehouse_restaurant_costs)
+    supply_chain_optimizer = SupplyChainOptimisation(vendors=vendors,
+                                                     warehouses=warehouses,
+                                                     restaurants=restaurants,
+                                                     vehicles=vehicles,
+                                                     supplier_warehouse_costs=supplier_warehouse_costs,
+                                                     warehouse_restaurant_costs=warehouse_restaurant_costs)
     
     supply_chain_optimizer.solve()
