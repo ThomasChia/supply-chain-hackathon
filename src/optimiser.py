@@ -22,6 +22,7 @@ class SupplyChainOptimisation:
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
         self.supply = LpVariable.dicts("supply", [(v.name, w.name) for v in vendors for w in warehouses], lowBound=0, cat='Continuous')
         self.distribution = LpVariable.dicts("distance", [(w.name, r.name) for w in warehouses for r in restaurants], lowBound=0, cat="Integer")
+        self.supplier_warehouse_logistics = LpVariable.dicts("logistics", [(v.name, w.name, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses)
@@ -34,6 +35,9 @@ class SupplyChainOptimisation:
     
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.mapping[w.name, r.name] for w in self.warehouses for r in self.restaurants)
+    
+    def get_supply_to_wareouse_co2_emissions_cost(self):
+        pass
 
     def add_vendor_constraints(self):
         for v in self.vendors:
@@ -48,8 +52,18 @@ class SupplyChainOptimisation:
         for r in self.restaurants:
             self.add_restaurant_demand_constraint(r)
 
+    def add_vehicle_constraints(self):
+        for ve in self.vehicles:
+            self.add_vehicle_availability_constraints_supplier_warehouse(ve)
+
     def add_vendor_limit_constraint(self, vendor: Vendor):
         self.problem += lpSum(self.supply[(vendor.name, w.name)] for w in self.warehouses)  <= vendor.capacity
+
+    def add_vendor_logistics_constraint(self, vendor: Vendor):
+        '''
+        Constraint for each vendor that their supply must be below the associated logistics capacity.
+        '''
+        self.problem += lpSum(self.supply[(vendor.name, w.name)] for w in self.warehouses) <= lpSum(self.logistics[vendor.name])
 
     def add_warehouse_capacity_constraint(self, warehouse: Warehouse):
         self.problem += lpSum(self.supply[(v.name, warehouse.name)] for v in self.vendors) <= warehouse.inventory_capacity
@@ -59,6 +73,12 @@ class SupplyChainOptimisation:
 
     def add_restaurant_demand_constraint(self, restaurant: Restaurant):
         self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) >= restaurant.restaurant_demand
+
+    def add_vehicle_availability_constraints_supplier_warehouse(self, ve: Vehicle):
+        '''
+        Constraint to ensure the number of vehicles used between suppliers and warehouses is less than or equal to the number of vehicles available.
+        '''
+        self.problem += lpSum(self.supplier_warehouse_logistics[(v.name, w.name, ve.name)] for v in vendors for w in warehouses) >= ve.number_available
 
     def print_results(self):
         if self.problem.status == 1:  # "Optimal" status code
@@ -98,33 +118,46 @@ class SupplyChainOptimisation:
 
 if __name__ == "__main__":
     vendors = [
-        Vendor("Vendor A", 1200, 0.4, 'London'),
-        Vendor("Vendor B", 800, 0.6, 'Paris'),
-        Vendor("Vendor C", 1500, 0.3, 'Berlin'),
-        Vendor("Vendor D", 1000, 0.5, 'Madrid'),
-        Vendor("Vendor E", 900, 0.7, 'Rome'),
+        Vendor(name="Vendor A",
+               location='London', 
+               capacity=1200, 
+               additional_capacity=1000, 
+               sla_period=2, 
+               onboarding_period=3, 
+               cost_per_kg=0.4, 
+               co2_emissions_per_kg=0.1),
+        Vendor("Vendor B", 'Paris', 800, 1000, 2, 3, 0.6, 0.2),
+        Vendor("Vendor C", 'Berlin', 1500, 1000, 2, 3, 0.3, 0.1),
+        Vendor("Vendor D", 'Madrid', 1000, 1000, 2, 3, 0.5, 0.15),
+        Vendor("Vendor E", 'Rome', 900, 1000, 2, 3, 0.7, 0.25)
     ]
 
     warehouses = [
-        Warehouse("Warehouse 1", 2000, 1, 'London'),
-        Warehouse("Warehouse 2", 1500, 2, 'Paris'),
-        Warehouse("Warehouse 3", 3000, 3, 'Berlin'),
+        Warehouse("Warehouse 1", 'London', 2, 2000, 1),
+        Warehouse("Warehouse 2", 'Paris', 1500, 2, 150),
+        Warehouse("Warehouse 3", 'Berlin', 3000, 3, 200),
     ]
 
     restaurants = [
-        Restaurant("Restaurant 1", 800, 'Madrid'),
-        Restaurant("Restaurant 2", 1200, 'Rome'),
+        Restaurant("Restaurant 1", 'Madrid', 800, 600, 300, 400, 100, 50),
+        Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 150, 55),
     ]
 
     vehicles = [
-        Vehicle("Cluck Logistics", "Class III Diesel Refrigerated Van", 1000, 10, 100),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", 1500, 15, 150),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", 2000, 20, 200),
-        Vehicle("Cluck Logistics", "Refrigerated Electric Van", 2500, 25, 250),
-        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", 1200, 12, 120),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", 1700, 17, 170),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", 2200, 22, 220),
-        Vehicle("Feather Express", "Refrigerated Electric Van", 2700, 27, 270)
+        Vehicle(company="Cluck Logistics", 
+                name="Class III Diesel Refrigerated Van", 
+                location="London", 
+                number_available=10, 
+                capacity=1000, 
+                cost_per_tonne_per_km=10, 
+                co2_emissions_per_tonne_per_km=1),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", "London", 11, 1500, 15, 0.5),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", "Madrid", 12, 2000, 20, 0.6),
+        Vehicle("Cluck Logistics", "Refrigerated Electric Van", "Berlin", 13, 2500, 25, 0.2),
+        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", "Paris", 14, 1200, 12, 0.4),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", "Amsterdam", 15, 1700, 17, 0.5),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", "Moscow", 15, 2200, 22, 0.6),
+        Vehicle("Feather Express", "Refrigerated Electric Van", "Dublin", 13, 2700, 27, 0.2),
     ]
 
     supplier_warehouse_costs = [
