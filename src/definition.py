@@ -9,13 +9,13 @@ distribution = LpVariable.dicts("distance", [(w, r) for w in warehouses for r in
 
 
 total_cost = (
-    # lpSum(supply[(v, w)] * vendors[v]['cost_per_kg'] + distance_cost[(v, w)]['cost'] * (1 if supply[(v, w)] > 0 else 0) for v in vendors for w in warehouses)
-    # lpSum(supply[(v, w)] * vendors[v]['cost_per_kg'] + distance_cost[(v, w)]['cost'] * (1 if supply[(v, w)] > 0 else 0) for v in vendors for w in warehouses)
     lpSum(supply[(v, w)] * vendors[v]['cost_per_kg'] + 
           supply[(v, w)] * distance_cost[(v, w)]['cost'] for v in vendors for w in warehouses) +
     lpSum(distribution[(w, r)] * distribution_cost[(w, r)]['cost'] for w in warehouses for r in restaurants)
 )
 problem += total_cost
+
+problem += lpSum(supply[(v, w)] for v in vendors for w in warehouses) >= lpSum(restaurants[r]['restaurant_demand'] for r in restaurants)
 
 for v in vendors:
     problem += lpSum(supply[(v, w)] for w in warehouses) <= vendors[v]['capacity']
@@ -27,18 +27,6 @@ for w in warehouses:
 for r in restaurants:
     problem += lpSum(distribution[(w, r)] for w in warehouses) >= restaurants[r]['restaurant_demand']  # Restaurant demand must be met
 
-# for d in distance_cost:
-#     problem += lpSum(distance[(v, w)] for v in vendors for w in warehouses) <= 1
-
-problem += lpSum(supply[(v, w)] for v in vendors for w in warehouses) >= lpSum(restaurants[r]['restaurant_demand'] for r in restaurants)
-# problem += lpSum(distance[(v, w)] for v in vendors for w in warehouses) >= 1
-# problem += lpSum(supply[v] for v in vendors) >= 1
-
-# Define the capacity constraint for each warehouse (if applicable)
-# Add additional constraints as needed for your specific scenario
-
-# Define the flow conservation constraint for each vendor (if applicable)
-# Add additional constraints as needed for your specific scenario
 
 
 # Solve the optimization problem
