@@ -36,7 +36,7 @@ class SupplyChainOptimisation:
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.mapping[w.name, r.name] for w in self.warehouses for r in self.restaurants)
     
-    def get_supply_to_wareouse_co2_emissions_cost(self):
+    def get_supply_to_warehouse_co2_emissions_cost(self):
         pass
 
     def add_vendor_constraints(self):
@@ -47,6 +47,11 @@ class SupplyChainOptimisation:
         for w in self.warehouses:
             self.add_warehouse_capacity_constraint(w)
             self.add_warehouse_supply_constraint(w)
+
+    def add_vendor_warehouse_constraints(self):
+        for v in self.vendors:
+            for w in self.warehouses:
+                self.add_vendor_logistics_constraint(v, w)
 
     def add_restaurant_constraints(self):
         for r in self.restaurants:
@@ -59,11 +64,11 @@ class SupplyChainOptimisation:
     def add_vendor_limit_constraint(self, vendor: Vendor):
         self.problem += lpSum(self.supply[(vendor.name, w.name)] for w in self.warehouses)  <= vendor.capacity
 
-    def add_vendor_logistics_constraint(self, vendor: Vendor):
+    def add_vendor_logistics_constraint(self, vendor: Vendor, warehouse: Warehouse):
         '''
-        Constraint for each vendor that their supply must be below the associated logistics capacity.
+        Constraint for each vendor and warehouse combination their supply must be below the associated logistics capacity.
         '''
-        self.problem += lpSum(self.supply[(vendor.name, w.name)] for w in self.warehouses) <= lpSum(self.logistics[vendor.name])
+        self.problem += lpSum(self.supply[(vendor.name, warehouse.name)]) <= lpSum(self.supplier_warehouse_logistics[(vendor.name, warehouse.name, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_warehouse_capacity_constraint(self, warehouse: Warehouse):
         self.problem += lpSum(self.supply[(v.name, warehouse.name)] for v in self.vendors) <= warehouse.inventory_capacity
@@ -94,6 +99,12 @@ class SupplyChainOptimisation:
                     if self.distribution[(w.name, r.name)].varValue > 0:
                         print(f"Distribution {self.distribution[(w.name, r.name)].varValue} units from {w.name} to {r.name} at a cost of {self.distribution[(w.name, r.name)].varValue * self.warehouse_restaurant_mapper.mapping[w.name, r.name]}.")
 
+            for v in self.vendors:
+                for w in self.warehouses:
+                    for ve in self.vehicles:
+                        if self.supplier_warehouse_logistics[(v.name, w.name, ve.name)].varValue > 0:
+                            print(f"Transport {self.supplier_warehouse_logistics[(v.name, w.name, ve.name)].varValue} units from {v.name} to {w.name} using {ve.name} at a cost of {self.supplier_warehouse_logistics[(v.name, w.name, ve.name)].varValue * ve.cost_per_tonne_per_km}.")
+
             print(f"Total cost: {self.problem.objective.value()}")
         else:
             print("No optimal solution found.")
@@ -110,6 +121,7 @@ class SupplyChainOptimisation:
         self.add_vendor_constraints()
         self.add_warehouse_constraints()
         self.add_restaurant_constraints()
+        self.add_vendor_warehouse_constraints()
 
         self.problem.solve()
 
