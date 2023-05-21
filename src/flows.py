@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-class Cost(ABC):
+class Distance(ABC):
     def __init__(self):
         self.route_tuple = ('', '')
         self.cost = 0
 
 @dataclass
-class SupplierWarehouseCost(Cost):
+class SupplierWarehouseDistance(Distance):
     route_tuple: tuple[str, str]
-    cost: float
+    distance: float
 
 @dataclass
-class WarehouseRestaurantCost(Cost):
+class WarehouseRestaurantDistance(Distance):
     route_tuple: tuple[str, str]
-    cost: float
+    distance: float

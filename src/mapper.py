@@ -1,21 +1,25 @@
-from flows import Cost
+from flows import Distance
 from typing import List
 from vehicles import Vehicle
 
 class RouteCostMapper:
-    def __init__(self, route_costs: List[Cost]):
-        self.mapping = self.get_mapping(route_costs)
+    def __init__(self, route_distances: List[Distance]):
+        self.distance_mapping = self.get_mapping(route_distances)
 
-    def get_mapping(self, route_costs: List[Cost]) -> dict[tuple[str, str], float]:
-        return {cost.route_tuple: cost.cost for cost in route_costs}
+    def get_mapping(self, route_distances: List[Distance]) -> dict[tuple[str, str], float]:
+        return {distance.route_tuple: distance.distance for distance in route_distances}
 
     def get_cost(self, distance_tuple: tuple[str, str]) -> float:
-        return self.mapping.get(distance_tuple, 0.0)  # Return 0.0 if distance_tuple is not found
+        return self.distance_mapping.get(distance_tuple, 0.0)  # Return 0.0 if distance_tuple is not found
     
 
 class VehicleCostMapper:
     def __init__(self, vehicle_costs: List[Vehicle]):
-        self.mapping = self.get_mapping(vehicle_costs)
+        self.cost_mapping = self.get_cost_mapping(vehicle_costs)
+        self.co2_mapping = self.get_co2_emissions_mapping(vehicle_costs)
 
-    def get_mapping(self, vehicle_costs: List[Vehicle]) -> dict[str, float]:
-        return {cost.name: cost.cost_per_tonne_per_km for cost in vehicle_costs}
+    def get_cost_mapping(self, vehicle_costs: List[Vehicle]) -> dict[tuple[str, str], float]:
+        return {(cost.company, cost.name): cost.cost_per_tonne_per_km for cost in vehicle_costs}
+    
+    def get_co2_emissions_mapping(self, vehicle_costs: List[Vehicle]) -> dict[tuple[str, str], float]:
+        return {(cost.company, cost.name): cost.co2_emissions_per_tonne_per_km for cost in vehicle_costs}
