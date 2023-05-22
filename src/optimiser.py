@@ -38,6 +38,12 @@ class SupplyChainOptimisation:
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
+    # def get_restaurant_fixed_costs(self):
+    #     return lpSum(r.fixed_cost for r in self.restaurants)
+    
+    # def get_restaurant_revenue(self):
+    #     return lpSum(self.distribution[(w.name, r.name)] * r.daily_profit for w in self.warehouses for r in self.restaurants)
+    
     def get_co2_emissions_cost(self):
         return lpSum(self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles) + \
                 lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
@@ -97,6 +103,9 @@ class SupplyChainOptimisation:
     def add_restaurant_demand_constraint(self, restaurant: Restaurant):
         self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) >= restaurant.restaurant_demand
 
+    def add_restaurant_stock_constraint(self, restaurant: Restaurant):
+        self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) <= restaurant.daily_chicken_demand * 3
+
     def add_vehicle_number_availability_constraints_supplier_warehouse(self, ve: Vehicle):
         '''
         Constraint to ensure the number of vehicles used between suppliers and warehouses is less than or equal to the number of vehicles available.
@@ -149,6 +158,7 @@ class SupplyChainOptimisation:
             self.get_supply_to_warehouse_cost() +
             self.get_warehouse_storage_cost() +
             self.get_warehouse_to_restaurant_cost() +
+            # self.get_restaurant_fixed_costs() +
             self.get_supply_to_warehouse_co2_emissions_cost() +
             self.get_warehouse_to_restaurant_co2_emissions_cost()
         )
