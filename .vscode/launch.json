@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Optimiser",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/definition.py}",
+            "program": "${workspaceFolder}/src/optimiser.py",
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
             "justMyCode": true

@@ -183,9 +183,9 @@ if __name__ == "__main__":
     ]
 
     warehouses = [
-        Warehouse("Warehouse 1", 'London', 2, 2000, 1),
-        Warehouse("Warehouse 2", 'Paris', 1500, 2, 150),
-        Warehouse("Warehouse 3", 'Berlin', 3000, 3, 200),
+        Warehouse("Warehouse 1", 'London', 2, 20, 1),
+        Warehouse("Warehouse 2", 'Paris', 3, 1500, 2),
+        Warehouse("Warehouse 3", 'Berlin', 5, 3000, 3),
     ]
 
     restaurants = [
