@@ -1,3 +1,5 @@
+import code
+import os
 import psycopg2
 from  sqlalchemy.engine import Engine
 from sqlalchemy import create_engine
@@ -27,3 +29,27 @@ class DbConnection(object):
         self.cursor.execute(query_string)
         data = self.cursor.fetchall()
         return data
+    
+
+if __name__ == '__main__':
+    USER = os.getenv('CSCUSER')
+    PASSWORD = os.getenv('CSCPASSWORD')
+    HOST = os.getenv('CSCHOST')
+    PORT = os.getenv('CSCPORT')
+    print(USER)
+    print(PASSWORD)
+    print(HOST)
+
+    connection = DbConnection(user=USER,
+                              password=PASSWORD,
+                              host=HOST,
+                              port=PORT)
+    
+    query = """
+    SELECT *
+    FROM chicken_restaurants
+    """
+
+    data = connection.reader(query)
+
+    code.interact(local=locals())
