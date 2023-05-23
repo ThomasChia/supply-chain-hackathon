@@ -1,29 +1,29 @@
 import code
 from connectors.connection import DbConnection
-from data_objects.flows import SupplierWarehouseDistance
+from data_objects.flows import WarehouseRestaurantDistance
 import os
 from psycopg2 import extras
 from readers.reader import Reader
 
-class SupplierWarehouseDistanceReader(Reader):
+class WarehouseRestaurantDistanceReader(Reader):
     def __init__(self, user, password, host, port):
         self.connection = DbConnection(user, password, host, port)
         self.query = ""
 
     def build_query(self):
         query = f"""
-        SELECT concat(farm_restaurant_id, ', ', warehouse_id) as route_tuple,
+        SELECT concat(warehouse_id, ', ', farm_restaurant_id) as route_tuple,
                 distance_meters as distance
         FROM warehouse_to_far_rest_mapping
-        WHERE farm_restaurant_id ilike 'F%'
+        WHERE farm_restaurant_id ilike 'R%'
         """
         self.query = query
 
     def read_query(self):
-        supplier_warehouse_distance = self.connection.reader(self.query)
-        for distance in supplier_warehouse_distance:
+        warehouse_restaurant_distance = self.connection.reader(self.query)
+        for distance in warehouse_restaurant_distance:
             distance['route_tuple'] = tuple(distance['route_tuple'].split(', '))
-        return [SupplierWarehouseDistance(**distance) for distance in supplier_warehouse_distance]
+        return [WarehouseRestaurantDistance(**distance) for distance in warehouse_restaurant_distance]
 
 
 if __name__ == '__main__':
@@ -32,8 +32,11 @@ if __name__ == '__main__':
     HOST = os.getenv('CSCHOST')
     PORT = os.getenv('CSCPORT')
 
-    reader = SupplierWarehouseDistanceReader()
+    reader = WarehouseRestaurantDistanceReader(user=USER,
+                                                password=PASSWORD, 
+                                                host=HOST, 
+                                                port=PORT)
     reader.build_query()
-    supplier_warehouse_distances = reader.read_query()
+    warehouse_restaurant_distances = reader.read_query()
 
     code.interact(locals=locals())
