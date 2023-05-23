@@ -1,6 +1,7 @@
 import code
 import os
 import psycopg2
+from psycopg2 import extras
 from  sqlalchemy.engine import Engine
 from sqlalchemy import create_engine
 
@@ -23,11 +24,12 @@ class DbConnection(object):
             host=self.host,
             port=self.port
             )
-        return conn.cursor()
+        return conn.cursor(cursor_factory=extras.RealDictCursor)
     
     def reader(self, query_string=None):
         self.cursor.execute(query_string)
         data = self.cursor.fetchall()
+        self.cursor.close()
         return data
     
 
