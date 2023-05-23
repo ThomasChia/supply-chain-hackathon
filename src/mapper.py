@@ -1,6 +1,6 @@
-from flows import Distance
+from data_objects.flows import Distance
 from typing import List
-from vehicles import Vehicle
+from data_objects.vehicles import Vehicle
 
 class RouteCostMapper:
     def __init__(self, route_distances: List[Distance]):

@@ -1,9 +1,9 @@
-from flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
+from data_objects.flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
 from mapper import RouteCostMapper, VehicleCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMaximize
-from sites import Vendor, Warehouse, Restaurant
+from data_objects.sites import Vendor, Warehouse, Restaurant
 from typing import List
-from vehicles import Vehicle
+from data_objects.vehicles import Vehicle
 
 class SupplyChainProfitMaximiser:
     CHICKEN_PRICE = 11.5

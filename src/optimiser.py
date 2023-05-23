@@ -1,4 +1,4 @@
-from flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
+from data_objects.flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
 from mapper import RouteCostMapper, VehicleCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize
 from data_objects.sites import Vendor, Warehouse, Restaurant
