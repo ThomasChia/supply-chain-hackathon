@@ -5,10 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Run App",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/app.py",
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Optimiser",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/optimiser.py",
+            "program": "${workspaceFolder}/src/optimisers/optimiser.py",
+            "cwd": "${workspaceFolder}/src",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Profit Maximiser",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/optimisers/profit_maximiser.py",
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
             "justMyCode": true

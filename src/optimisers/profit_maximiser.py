@@ -118,13 +118,13 @@ class SupplyChainProfitMaximiser:
         '''
         Constraint to ensure the number of vehicles used between suppliers and warehouses is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.supplier_warehouse_logistics[(v.name, w.name, ve.company, ve.name)] for v in vendors for w in warehouses) >= ve.number_available
+        self.problem += lpSum(self.supplier_warehouse_logistics[(v.name, w.name, ve.company, ve.name)] for v in self.vendors for w in self.warehouses) >= ve.number_available
 
     def add_vehicle_number_availability_constraints_warehouse_restaurant(self, ve: Vehicle):
         '''
         Constraint to ensure the number of vehicles used between warehouses and restaurants is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.warehouse_restaurant_logistics[(w.name, r.name, ve.company, ve.name)] for w in warehouses for r in restaurants) >= ve.number_available
+        self.problem += lpSum(self.warehouse_restaurant_logistics[(w.name, r.name, ve.company, ve.name)] for w in self.warehouses for r in self.restaurants) >= ve.number_available
 
     def print_results(self):
         if self.problem.status == 1:
