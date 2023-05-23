@@ -6,6 +6,8 @@ from typing import List
 from vehicles import Vehicle
 
 class SupplyChainProfitMaximiser:
+    CHICKEN_PRICE = 11.5
+
     def __init__(self,
                  vendors: List[Vendor],
                  warehouses: List[Warehouse], 
@@ -26,6 +28,12 @@ class SupplyChainProfitMaximiser:
         self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
         self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
+    def get_daily_chicken_sales(self):
+        return lpSum(self.distribution[(w.name, r.name)] * self.CHICKEN_PRICE for w in self.warehouses for r in self.restaurants)
+    
+    def get_daily_non_chicken_sales(self):
+        return lpSum(r.daily_total_demand - r.daily_chicken_demand for r in self.restaurants)
+    
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses)
     
@@ -38,8 +46,8 @@ class SupplyChainProfitMaximiser:
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
-    # def get_restaurant_fixed_costs(self):
-    #     return lpSum(r.fixed_cost for r in self.restaurants)
+    def get_restaurant_fixed_costs(self):
+        return lpSum(r.fixed_cost for r in self.restaurants)
     
     # def get_restaurant_revenue(self):
     #     return lpSum(self.distribution[(w.name, r.name)] * r.daily_profit for w in self.warehouses for r in self.restaurants)
@@ -136,6 +144,16 @@ class SupplyChainProfitMaximiser:
 
                         for ve in self.vehicles:
                             print(f"Transport costs of {self.distribution[(w.name, r.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")
+             
+            restaurant_sales = {}
+            for r in self.restaurants:
+                restaurant_sales[r.name] = 0
+                for w in self.warehouses:
+                    if self.distribution[(w.name, r.name)].varValue > 0:
+                        restaurant_sales[r.name] += self.distribution[(w.name, r.name)].varValue
+            
+            for r in restaurant_sales.keys():
+                print(f"Daily chicken sales for {r} are {restaurant_sales[r]}.")   
 
             # self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles
             for v in self.vendors:
@@ -153,16 +171,18 @@ class SupplyChainProfitMaximiser:
             print("No optimal solution found.")
 
     def solve(self):
-        total_cost = (
-            self.get_supply_cost() + 
-            self.get_supply_to_warehouse_cost() +
-            self.get_warehouse_storage_cost() +
-            self.get_warehouse_to_restaurant_cost() +
-            # self.get_restaurant_fixed_costs() +
-            self.get_supply_to_warehouse_co2_emissions_cost() +
-            self.get_warehouse_to_restaurant_co2_emissions_cost()
+        total_profit = (
+            self.get_daily_chicken_sales() +
+            self.get_daily_non_chicken_sales() -
+            self.get_supply_cost() -
+            self.get_supply_to_warehouse_cost() -
+            self.get_warehouse_storage_cost() -
+            self.get_warehouse_to_restaurant_cost() -
+            self.get_restaurant_fixed_costs()
         )
-        self.problem += total_cost
+        #     self.get_supply_to_warehouse_co2_emissions_cost() +
+        #     self.get_warehouse_to_restaurant_co2_emissions_cost()
+        self.problem += total_profit
 
         self.add_vendor_constraints()
         self.add_warehouse_constraints()
@@ -199,7 +219,14 @@ if __name__ == "__main__":
     ]
 
     restaurants = [
-        Restaurant("Restaurant 1", 'Madrid', 800, 600, 300, 400, 100, 50),
+        Restaurant(name="Restaurant 1",
+                   location='Madrid',
+                   restaurant_demand=800,
+                   current_stock=600, 
+                   daily_chicken_demand=300, 
+                   daily_total_demand=400, 
+                   daily_profit=100,
+                   fixed_cost=50),
         Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 150, 55),
     ]
 
@@ -247,11 +274,11 @@ if __name__ == "__main__":
         WarehouseRestaurantDistance((warehouses[2].name, restaurants[1].name), 6),
     ]
 
-    supply_chain_optimizer = SupplyChainOptimisation(vendors=vendors,
-                                                     warehouses=warehouses,
-                                                     restaurants=restaurants,
-                                                     vehicles=vehicles,
-                                                     supplier_warehouse_distances=supplier_warehouse_costs,
-                                                     warehouse_restaurant_distances=warehouse_restaurant_costs)
+    supply_chain_optimizer = SupplyChainProfitMaximiser(vendors=vendors,
+                                                        warehouses=warehouses,
+                                                        restaurants=restaurants,
+                                                        vehicles=vehicles,
+                                                        supplier_warehouse_distances=supplier_warehouse_costs,
+                                                        warehouse_restaurant_distances=warehouse_restaurant_costs)
     
     supply_chain_optimizer.solve()
