@@ -3,7 +3,6 @@ from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
 from data.test_data import vendors, warehouses, restaurants, vehicles, supplier_warehouse_costs, warehouse_restaurant_costs
-from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 
 
 if __name__ == '__main__':
@@ -20,19 +19,19 @@ if __name__ == '__main__':
                                                                                                                                                                                                        
     """)
 
-    USER = os.getenv('CSCUSER')
-    PASSWORD = os.getenv('CSCPASSWORD')
-    HOST = os.getenv('CSCHOST')
-    PORT = os.getenv('CSCPORT')
+    # USER = os.getenv('CSCUSER')
+    # PASSWORD = os.getenv('CSCPASSWORD')
+    # HOST = os.getenv('CSCHOST')
+    # PORT = os.getenv('CSCPORT')
 
-    reader = WarehouseRestaurantDistanceReader(user=USER,
-                             password=PASSWORD, 
-                             host=HOST, 
-                             port=PORT)
-    reader.build_query()
-    warehouse_restaurant_distance = reader.read_query()
+    # reader = WarehouseRestaurantDistanceReader(user=USER,
+    #                          password=PASSWORD, 
+    #                          host=HOST, 
+    #                          port=PORT)
+    # reader.build_query()
+    # warehouse_restaurant_distance = reader.read_query()
           
-    code.interact(local=locals())
+    # code.interact(local=locals())
 
     # supply_chain_optimizer = SupplyChainOptimisation(vendors=vendors,
     #                                                  warehouses=warehouses,
