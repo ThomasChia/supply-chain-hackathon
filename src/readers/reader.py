@@ -3,12 +3,12 @@ from connectors.connection import DbConnection
 import os
 
 
-# USER = os.getenv('CSCUSER')
-# PASSWORD = os.getenv('CSCPASSWORD')
-# HOST = os.getenv('CSCHOST')
-# PORT = os.getenv('CSCPORT')
-
-class Reader(ABC):
+class Reader:
+    USER = os.getenv('CSCUSER')
+    PASSWORD = os.getenv('CSCPASSWORD')
+    HOST = os.getenv('CSCHOST')
+    PORT = os.getenv('CSCPORT')
+    
     def __init__(self):
         self.USER = os.getenv('CSCUSER')
         self.PASSWORD = os.getenv('CSCPASSWORD')

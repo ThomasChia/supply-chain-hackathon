@@ -6,8 +6,8 @@ from psycopg2 import extras
 from readers.reader import Reader
 
 class WarehouseReader(Reader):
-    def __init__(self, user, password, host, port):
-        self.connection = DbConnection(user, password, host, port)
+    def __init__(self):
+        self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
 
     def build_query(self):
