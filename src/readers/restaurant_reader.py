@@ -5,6 +5,7 @@ from readers.reader import Reader
 class RestaurantReader(Reader):
     def __init__(self, user, password, host, port):
         self.connection = DbConnection(user, password, host, port)
+        self.query = ""
 
     def build_query(self):
         query = f"""
@@ -19,8 +20,8 @@ class RestaurantReader(Reader):
         INNER JOIN chicken_restaurants_demand as demand
             ON chicken_restaurants.id = chicken_restaurants_demand.id
         """
-        return query
+        self.query = query
 
-    def read_query(self, query):
-        restaurants = self.connection.reader(query)
+    def read_query(self):
+        restaurants = self.connection.reader(self.query)
         return [Restaurant(**restaurant) for restaurant in restaurants]
