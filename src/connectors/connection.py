@@ -36,9 +36,6 @@ if __name__ == '__main__':
     PASSWORD = os.getenv('CSCPASSWORD')
     HOST = os.getenv('CSCHOST')
     PORT = os.getenv('CSCPORT')
-    print(USER)
-    print(PASSWORD)
-    print(HOST)
 
     connection = DbConnection(user=USER,
                               password=PASSWORD,
