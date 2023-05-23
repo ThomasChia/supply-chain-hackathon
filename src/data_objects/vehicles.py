@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+from typing import List
 
 @dataclass
 class Vehicle:
     company: str
     name: str
-    location: str
+    locations: List[str]
     number_available: int
     capacity: float
     cost_per_tonne_per_km: float

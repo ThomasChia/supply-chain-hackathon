@@ -3,7 +3,7 @@ from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
 from data.test_data import vendors, warehouses, restaurants, vehicles, supplier_warehouse_costs, warehouse_restaurant_costs
-from readers.warehouse_reader import WarehouseReader
+from readers.vehicle_reader import VehicleReader
 
 
 if __name__ == '__main__':
@@ -25,14 +25,14 @@ if __name__ == '__main__':
     HOST = os.getenv('CSCHOST')
     PORT = os.getenv('CSCPORT')
 
-    reader = WarehouseReader(user=USER,
+    reader = VehicleReader(user=USER,
                              password=PASSWORD, 
                              host=HOST, 
                              port=PORT)
     data = reader.build_query()
     warehouses = reader.read_query()
           
-    code.interact(locals=locals())
+    code.interact(local=locals())
 
     # supply_chain_optimizer = SupplyChainOptimisation(vendors=vendors,
     #                                                  warehouses=warehouses,
