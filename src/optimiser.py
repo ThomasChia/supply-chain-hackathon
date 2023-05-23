@@ -1,9 +1,9 @@
 from flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
 from mapper import RouteCostMapper, VehicleCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize
-from sites import Vendor, Warehouse, Restaurant
+from data_objects.sites import Vendor, Warehouse, Restaurant
 from typing import List
-from vehicles import Vehicle
+from data_objects.vehicles import Vehicle
 
 class SupplyChainOptimisation:
     def __init__(self,
