@@ -11,7 +11,13 @@
             "program": "${workspaceFolder}/src/app.py",
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "CSCUSER": "csc_admin",
+                "CSCPASSWORD": "7!dCA%26cbQ",
+                "CSCHOST": "supply-chain.cspxerxok0ew.eu-west-2.rds.amazonaws.com",
+                "CSCPORT": "5432"
+            },
         },
         {
             "name": "Python: Optimiser",
