@@ -1,7 +1,9 @@
+import code
 from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
+import os
 from data.test_data import vendors, warehouses, restaurants, vehicles, supplier_warehouse_costs, warehouse_restaurant_costs
-
+from readers.warehouse_reader import WarehouseReader
 
 
 if __name__ == '__main__':
@@ -17,7 +19,20 @@ if __name__ == '__main__':
   `-...-'    ``-'`-'' `---'     `---'       `--------` `-..-'       '(_,_) '---'   ``-'`-'' /_______.'  
                                                                                                                                                                                                        
     """)
+
+    USER = os.getenv('CSCUSER')
+    PASSWORD = os.getenv('CSCPASSWORD')
+    HOST = os.getenv('CSCHOST')
+    PORT = os.getenv('CSCPORT')
+
+    reader = WarehouseReader(user=USER,
+                             password=PASSWORD, 
+                             host=HOST, 
+                             port=PORT)
+    data = reader.build_query()
+    warehouses = reader.read_query()
           
+    code.interact(locals=locals())
 
     # supply_chain_optimizer = SupplyChainOptimisation(vendors=vendors,
     #                                                  warehouses=warehouses,
@@ -28,11 +43,11 @@ if __name__ == '__main__':
     
     # supply_chain_optimizer.solve()
     
-    supply_chain_optimizer = SupplyChainProfitMaximiser(vendors=vendors,
-                                                        warehouses=warehouses,
-                                                        restaurants=restaurants,
-                                                        vehicles=vehicles,
-                                                        supplier_warehouse_distances=supplier_warehouse_costs,
-                                                        warehouse_restaurant_distances=warehouse_restaurant_costs)
+    # supply_chain_optimizer = SupplyChainProfitMaximiser(vendors=vendors,
+    #                                                     warehouses=warehouses,
+    #                                                     restaurants=restaurants,
+    #                                                     vehicles=vehicles,
+    #                                                     supplier_warehouse_distances=supplier_warehouse_costs,
+    #                                                     warehouse_restaurant_distances=warehouse_restaurant_costs)
     
-    supply_chain_optimizer.solve()
+    # supply_chain_optimizer.solve()

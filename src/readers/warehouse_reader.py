@@ -1,6 +1,7 @@
 import code
 from connectors.connection import DbConnection
 from data_objects.sites import Warehouse
+import os
 from readers.reader import Reader
 
 class WarehouseReader(Reader):
@@ -27,6 +28,11 @@ class WarehouseReader(Reader):
     
 
 if __name__ == '__main__':
+    USER = os.getenv('CSCUSER')
+    PASSWORD = os.getenv('CSCPASSWORD')
+    HOST = os.getenv('CSCHOST')
+    PORT = os.getenv('CSCPORT')
+
     reader = WarehouseReader()
     reader.build_query()
     warehouses = reader.read_query()
