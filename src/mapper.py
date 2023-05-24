@@ -19,7 +19,7 @@ class VehicleCostMapper:
         self.co2_mapping = self.get_co2_emissions_mapping(vehicle_costs)
 
     def get_cost_mapping(self, vehicle_costs: List[Vehicle]) -> dict[tuple[str, str], float]:
-        return {(cost.company, cost.name): cost.cost_per_tonne_per_km for cost in vehicle_costs}
+        return {(cost.company, cost.name): cost.cost_per_kg_per_km for cost in vehicle_costs}
     
     def get_co2_emissions_mapping(self, vehicle_costs: List[Vehicle]) -> dict[tuple[str, str], float]:
-        return {(cost.company, cost.name): cost.co2_emissions_per_tonne_per_km for cost in vehicle_costs}
+        return {(cost.company, cost.name): cost.co2_emissions_per_kg_per_km for cost in vehicle_costs}

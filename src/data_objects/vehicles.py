@@ -8,5 +8,5 @@ class Vehicle:
     locations: List[str]
     number_available: int
     capacity: float
-    cost_per_tonne_per_km: float
-    co2_emissions_per_tonne_per_km: float
+    cost_per_kg_per_km: float
+    co2_emissions_per_kg_per_km: float
