@@ -28,6 +28,7 @@ class VehicleReader(Reader):
         FROM logistics
         LEFT JOIN co2_emissions
         ON logistics.vehicle = co2_emissions.vehicle_type
+        WHERE logistics.no___available > 0
         """
         self.query = query
 

@@ -19,7 +19,7 @@ class WarehouseRestaurantDistanceReader(Reader):
     def build_query(self):
         query = f"""
         SELECT concat(warehouse_id, ', ', farm_restaurant_id) as route_tuple,
-                distance_meters as distance
+                distance_meters / 1000 as distance
         FROM warehouse_to_far_rest_mapping
         WHERE farm_restaurant_id ilike 'R%'
         """

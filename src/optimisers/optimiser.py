@@ -21,22 +21,22 @@ class SupplyChainOptimisation:
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_distances)
         self.vehicle_mapper = VehicleCostMapper(vehicles)
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
-        self.supply = LpVariable.dicts("supply", [(v.name, w.name) for v in vendors for w in warehouses], lowBound=0, cat='Continuous')
-        self.distribution = LpVariable.dicts("distribution", [(w.name, r.name) for w in warehouses for r in restaurants], lowBound=0, cat="Integer")
+        self.supply = LpVariable.dicts("supply", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat='Continuous')
+        self.distribution = LpVariable.dicts("distribution", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
         self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
         self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses)
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses for ve in self.vehicles)
     
     def get_supply_to_warehouse_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
     
     def get_warehouse_storage_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * w.storage_cost_per_kg for v in self.vendors for w in self.warehouses)
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * w.storage_cost_per_kg for v in self.vendors for w in self.warehouses for ve in self.vehicles)
     
     def get_warehouse_to_restaurant_cost(self):
-        return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
+        return lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
     # def get_restaurant_fixed_costs(self):
     #     return lpSum(r.fixed_cost for r in self.restaurants)
@@ -45,14 +45,14 @@ class SupplyChainOptimisation:
     #     return lpSum(self.distribution[(w.name, r.name)] * r.daily_profit for w in self.warehouses for r in self.restaurants)
     
     def get_co2_emissions_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles) + \
-                lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles) + \
+                lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
     def get_supply_to_warehouse_co2_emissions_cost(self):
-        return lpSum(self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
     
     def get_warehouse_to_restaurant_co2_emissions_cost(self):
-        return lpSum(self.distribution[(w.name, r.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
+        return lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
 
     def add_vendor_constraints(self):
         for v in self.vendors:
@@ -83,28 +83,28 @@ class SupplyChainOptimisation:
             self.add_vehicle_number_availability_constraints_warehouse_restaurant(ve)
 
     def add_vendor_limit_constraint(self, vendor: Vendor):
-        self.problem += lpSum(self.supply[(vendor.name, w.name)] for w in self.warehouses)  <= vendor.capacity
+        self.problem += lpSum(self.supply[(vendor.name, w.name, ve.company, ve.name)] for w in self.warehouses for ve in self.vehicles)  <= vendor.capacity
 
     def add_vendor_logistics_constraint(self, vendor: Vendor, warehouse: Warehouse):
         '''
         Constraint for each vendor and warehouse combination their supply must be below the associated logistics capacity.
         '''
-        self.problem += lpSum(self.supply[(vendor.name, warehouse.name)]) <= lpSum(self.supplier_warehouse_logistics[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.supplier_warehouse_logistics[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_warehouse_capacity_constraint(self, warehouse: Warehouse):
-        self.problem += lpSum(self.supply[(v.name, warehouse.name)] for v in self.vendors) <= warehouse.inventory_capacity
+        self.problem += lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles) <= warehouse.inventory_capacity
 
     def add_warehouse_supply_constraint(self, warehouse: Warehouse):
-        self.problem += lpSum(self.distribution[(warehouse.name, r.name)] for r in self.restaurants) <= lpSum(self.supply[(v.name, warehouse.name)] for v in self.vendors)
+        self.problem += lpSum(self.distribution[(warehouse.name, r.name, ve.company, ve.name)] for r in self.restaurants for ve in self.vehicles) <= lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles)
 
     def add_warehouse_logistics_constraint(self, warehouse: Warehouse, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name)]) <= lpSum(self.warehouse_restaurant_logistics[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.warehouse_restaurant_logistics[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_restaurant_demand_constraint(self, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) >= restaurant.restaurant_demand
+        self.problem += lpSum(self.distribution[(w.name, restaurant.name, ve.company, ve.name)] for w in self.warehouses for ve in self.vehicles) >= restaurant.restaurant_demand
 
     def add_restaurant_stock_constraint(self, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) <= restaurant.daily_chicken_demand * 3
+        self.problem += lpSum(self.distribution[(w.name, restaurant.name, ve.company, ve.name)] for w in self.warehouses for ve in self.vehicles) <= restaurant.restaurant_demand * 3
 
     def add_vehicle_number_availability_constraints_supplier_warehouse(self, ve: Vehicle):
         '''
@@ -122,31 +122,29 @@ class SupplyChainOptimisation:
         if self.problem.status == 1:
             for v in self.vendors:
                 for w in self.warehouses:
-                    if self.supply[(v.name, w.name)].varValue > 0:
-                        print(f"Supply {self.supply[(v.name, w.name)].varValue} units from {v.name} at a cost of {self.supply[(v.name, w.name)].varValue * v.cost_per_kg} and delivered to warehouse {w.name}.")
-                        print(f"Inventory at warehouse {w.name} is {self.supply[(v.name, w.name)].varValue} units at a cost of {self.supply[(v.name, w.name)].varValue * w.storage_cost_per_kg}.")
-
-                        for ve in self.vehicles:
-                            print(f"Transport costs of {self.supply[(v.name, w.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
+                    for ve in self.vehicles:
+                        if self.supply[(v.name, w.name, ve.company, ve.name)].varValue > 0:
+                            print(f"Supply {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units from {v.name} at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * v.cost_per_kg} and delivered to warehouse {w.name}.")
+                            print(f"Inventory at warehouse {w.name} is {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * w.storage_cost_per_kg}.")
+                            print(f"Transport costs of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
 
             for w in self.warehouses:
                 for r in self.restaurants:
-                    if self.distribution[(w.name, r.name)].varValue > 0:
-                        # print(f"Distribution {self.distribution[(w.name, r.name)]varValue} units from {w.name} to {r.name} at a cost of {self.distribution[(w.name, r.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name]}.")
+                    for ve in self.vehicles:
+                        if self.distribution[(w.name, r.name, ve.company, ve.name)].varValue > 0:
+                            print(f"Transport costs of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")
 
-                        for ve in self.vehicles:
-                            print(f"Transport costs of {self.distribution[(w.name, r.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")
-
-            # self.supply[(v.name, w.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles
             for v in self.vendors:
                 for w in self.warehouses:
                     for ve in self.vehicles:
-                        print(f"CO2 emissions of {self.supply[(v.name, w.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
+                        if self.supply[(v.name, w.name, ve.company, ve.name)].varValue > 0:
+                            print(f"CO2 emissions of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
 
             for w in self.warehouses:
                 for r in self.restaurants:
                     for ve in self.vehicles:
-                        print(f"CO2 emissions of {self.distribution[(w.name, r.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")            
+                        if self.distribution[(w.name, r.name, ve.company, ve.name)].varValue > 0:
+                            print(f"CO2 emissions of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")            
 
             print(f"Total cost: {self.problem.objective.value()}")
         else:
@@ -179,6 +177,7 @@ class SupplyChainOptimisation:
 if __name__ == "__main__":
     vendors = [
         Vendor(name="Vendor A",
+               company="Company A",
                location='London', 
                capacity=1200, 
                additional_capacity=1000, 
@@ -186,10 +185,10 @@ if __name__ == "__main__":
                onboarding_period=3, 
                cost_per_kg=0.4, 
                co2_emissions_per_kg=0.1),
-        Vendor("Vendor B", 'Paris', 800, 1000, 2, 3, 0.6, 0.2),
-        Vendor("Vendor C", 'Berlin', 1500, 1000, 2, 3, 0.3, 0.1),
-        Vendor("Vendor D", 'Madrid', 1000, 1000, 2, 3, 0.5, 0.15),
-        Vendor("Vendor E", 'Rome', 900, 1000, 2, 3, 0.7, 0.25)
+        Vendor("Vendor B", "Company B", 'Paris', 800, 1000, 2, 3, 0.6, 0.2),
+        Vendor("Vendor C", "Company C", 'Berlin', 1500, 1000, 2, 3, 0.3, 0.1),
+        Vendor("Vendor D", "Company D", 'Madrid', 1000, 1000, 2, 3, 0.5, 0.15),
+        Vendor("Vendor E", "Company E", 'Rome', 900, 1000, 2, 3, 0.7, 0.25)
     ]
 
     warehouses = [
@@ -199,25 +198,25 @@ if __name__ == "__main__":
     ]
 
     restaurants = [
-        Restaurant("Restaurant 1", 'Madrid', 800, 600, 300, 400, 100, 50),
-        Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 150, 55),
+        Restaurant("Restaurant 1", 'Madrid', 800, 600, 300, 400, 50),
+        Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 55),
     ]
 
     vehicles = [
         Vehicle(company="Cluck Logistics", 
                 name="Class III Diesel Refrigerated Van", 
-                location="London", 
+                locations=["London"], 
                 number_available=10, 
                 capacity=1000, 
                 cost_per_tonne_per_km=10, 
                 co2_emissions_per_tonne_per_km=1),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", "London", 11, 1500, 15, 0.5),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", "Madrid", 12, 2000, 20, 0.6),
-        Vehicle("Cluck Logistics", "Refrigerated Electric Van", "Berlin", 13, 2500, 25, 0.2),
-        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", "Paris", 14, 1200, 12, 0.4),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", "Amsterdam", 15, 1700, 17, 0.5),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", "Moscow", 15, 2200, 22, 0.6),
-        Vehicle("Feather Express", "Refrigerated Electric Van", "Dublin", 13, 2700, 27, 0.2),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", ["London"], 11, 1500, 15, 0.5),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", ["Madrid"], 12, 2000, 20, 0.6),
+        Vehicle("Cluck Logistics", "Refrigerated Electric Van", ["Berlin"], 13, 2500, 25, 0.2),
+        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", ["Paris"], 14, 1200, 12, 0.4),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", ["Amsterdam"], 15, 1700, 17, 0.5),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", ["Moscow"], 15, 2200, 22, 0.6),
+        Vehicle("Feather Express", "Refrigerated Electric Van", ["Dublin"], 13, 2700, 27, 0.2),
     ]
 
     supplier_warehouse_costs = [
