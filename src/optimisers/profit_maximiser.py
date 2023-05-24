@@ -32,7 +32,7 @@ class SupplyChainProfitMaximiser:
         return lpSum(self.distribution[(w.name, r.name)] * self.CHICKEN_PRICE for w in self.warehouses for r in self.restaurants)
     
     def get_daily_non_chicken_sales(self):
-        return lpSum(r.daily_total_demand - r.daily_chicken_demand for r in self.restaurants)
+        return lpSum(r.daily_total_demand - r.restaurant_demand for r in self.restaurants)
     
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses)
@@ -112,7 +112,7 @@ class SupplyChainProfitMaximiser:
         self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) >= restaurant.restaurant_demand
 
     def add_restaurant_stock_constraint(self, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) <= restaurant.daily_chicken_demand * 3
+        self.problem += lpSum(self.distribution[(w.name, restaurant.name)] for w in self.warehouses) <= restaurant.restaurant_demand * 3
 
     def add_vehicle_number_availability_constraints_supplier_warehouse(self, ve: Vehicle):
         '''
@@ -199,6 +199,7 @@ class SupplyChainProfitMaximiser:
 if __name__ == "__main__":
     vendors = [
         Vendor(name="Vendor A",
+               company="Company A",
                location='London', 
                capacity=1200, 
                additional_capacity=1000, 
@@ -206,10 +207,10 @@ if __name__ == "__main__":
                onboarding_period=3, 
                cost_per_kg=0.4, 
                co2_emissions_per_kg=0.1),
-        Vendor("Vendor B", 'Paris', 800, 1000, 2, 3, 0.6, 0.2),
-        Vendor("Vendor C", 'Berlin', 1500, 1000, 2, 3, 0.3, 0.1),
-        Vendor("Vendor D", 'Madrid', 1000, 1000, 2, 3, 0.5, 0.15),
-        Vendor("Vendor E", 'Rome', 900, 1000, 2, 3, 0.7, 0.25)
+        Vendor("Vendor B", "Company B",'Paris', 800, 1000, 2, 3, 0.6, 0.2),
+        Vendor("Vendor C", "Company C",'Berlin', 1500, 1000, 2, 3, 0.3, 0.1),
+        Vendor("Vendor D", "Company D",'Madrid', 1000, 1000, 2, 3, 0.5, 0.15),
+        Vendor("Vendor E", "Company E",'Rome', 900, 1000, 2, 3, 0.7, 0.25)
     ]
 
     warehouses = [
@@ -223,28 +224,27 @@ if __name__ == "__main__":
                    location='Madrid',
                    restaurant_demand=800,
                    current_stock=600, 
-                   daily_chicken_demand=300, 
                    daily_total_demand=400, 
                    daily_profit=100,
                    fixed_cost=50),
-        Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 150, 55),
+        Restaurant("Restaurant 2", 'Rome', 1200, 700, 200, 500, 55),
     ]
 
     vehicles = [
         Vehicle(company="Cluck Logistics", 
                 name="Class III Diesel Refrigerated Van", 
-                location="London", 
+                locations=["London"], 
                 number_available=10, 
                 capacity=1000, 
                 cost_per_kg_per_km=10, 
                 co2_emissions_per_kg_per_km=1),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", "London", 11, 1500, 15, 0.5),
-        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", "Madrid", 12, 2000, 20, 0.6),
-        Vehicle("Cluck Logistics", "Refrigerated Electric Van", "Berlin", 13, 2500, 25, 0.2),
-        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", "Paris", 14, 1200, 12, 0.4),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", "Amsterdam", 15, 1700, 17, 0.5),
-        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", "Moscow", 15, 2200, 22, 0.6),
-        Vehicle("Feather Express", "Refrigerated Electric Van", "Dublin", 13, 2700, 27, 0.2),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Rigid", ["London"], 11, 1500, 15, 0.5),
+        Vehicle("Cluck Logistics", "Deisel HGV Refrigerated Articulated", ["Madrid"], 12, 2000, 20, 0.6),
+        Vehicle("Cluck Logistics", "Refrigerated Electric Van", ["Berlin"], 13, 2500, 25, 0.2),
+        Vehicle("Feather Express", "Class III Diesel Refrigerated Van", ["Paris"], 14, 1200, 12, 0.4),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Rigid", ["Amsterdam"], 15, 1700, 17, 0.5),
+        Vehicle("Feather Express", "Deisel HGV Refrigerated Articulated", ["Moscow"], 15, 2200, 22, 0.6),
+        Vehicle("Feather Express", "Refrigerated Electric Van", ["Dublin"], 13, 2700, 27, 0.2),
     ]
 
     supplier_warehouse_costs = [

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 class Distance(ABC):
     def __init__(self):
         self.route_tuple = ('', '')
-        self.cost = 0
+        self.distance = 0
 
 @dataclass
 class SupplierWarehouseDistance(Distance):
