@@ -32,7 +32,12 @@ class CostMinimiserPlanner:
         pass
 
     def get_data(self):
-        vendors = VendorReader()
+        vendors = VendorReader(self.vendors_input)
+        warehouses = WarehouseReader(self.warehouses_input)
+        restaurants = RestaurantReader(self.restaurants_input)
+        vehicles = VehicleReader(self.vehicles_input)
+        supplier_warehouse_distances = SupplierWarehouseDistanceReader(self.supplier_warehouse_distance_input)
+        warehouse_restaurant_distances = WarehouseRestaurantDistanceReader(self.warehouse_restaurant_distance_input)
 
 
 # USER = os.getenv('CSCUSER')

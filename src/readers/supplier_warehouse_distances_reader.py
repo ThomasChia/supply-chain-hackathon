@@ -6,9 +6,10 @@ from psycopg2 import extras
 from readers.reader import Reader
 
 class SupplierWarehouseDistanceReader(Reader):
-    def __init__(self):
+    def __init__(self, filters=[]):
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
+        self.filters = filters
 
     def build_query(self):
         query = f"""

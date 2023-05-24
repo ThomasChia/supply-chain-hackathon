@@ -3,10 +3,11 @@ from data_objects.sites import Restaurant
 from readers.reader import Reader
 
 class RestaurantReader(Reader):
-    def __init__(self):
+    def __init__(self, filters=[]):
         super().__init__()
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
+        self.filters = filters
 
     def build_query(self):
         query = f"""
