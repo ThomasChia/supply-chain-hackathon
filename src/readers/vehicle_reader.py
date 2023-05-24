@@ -10,6 +10,11 @@ class VehicleReader(Reader):
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
         self.filters = filters
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
 
     def build_query(self):
         query = f"""
@@ -28,7 +33,7 @@ class VehicleReader(Reader):
 
     def read_query(self):
         vehicles = self.connection.reader(self.query)
-        return [Vehicle(**vehicle) for vehicle in vehicles]
+        self.data = [Vehicle(**vehicle) for vehicle in vehicles]
 
 
 if __name__ == '__main__':
@@ -41,4 +46,4 @@ if __name__ == '__main__':
     reader.build_query()
     warehouses = reader.read_query()
 
-    code.interact(locals=locals())
+    code.interact(local=locals())

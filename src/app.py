@@ -1,4 +1,5 @@
 import code
+from planners.cost_minimiser import CostMinimiserPlanner
 from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
@@ -19,9 +20,13 @@ if __name__ == '__main__':
                                                                                                                                                                                                        
     """)
 
-    reader = WarehouseReader()
-    reader.build_query()
-    restaurant_distance = reader.read_query()
+    planner = CostMinimiserPlanner(vendors_input=[],
+                                   warehouses_input=[],
+                                   restaurants_input=[],
+                                   vehicles_input=[],
+                                   supplier_warehouse_distance_input=[],
+                                   warehouse_restaurant_distance_input=[])
+    planner.run()
           
     code.interact(local=locals())
 

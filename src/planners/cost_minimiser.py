@@ -27,27 +27,47 @@ class CostMinimiserPlanner:
         self.vehicles_input = vehicles_input
         self.supplier_warehouse_distance_input = supplier_warehouse_distance_input
         self.warehouse_restaurant_distance_input = warehouse_restaurant_distance_input
+        self.vendors = []
+        self.warehouses = []
+        self.restaurants = []
+        self.vehicles = []
+        self.supplier_warehouse_distance = []
+        self.warehouse_restaurant_distance = []
 
     def run(self):
-        pass
+        self.get_data()
+        self.optimise()
 
     def get_data(self):
         vendors = VendorReader(self.vendors_input)
+        vendors.run()
+        self.vendors = vendors.data
+
         warehouses = WarehouseReader(self.warehouses_input)
+        warehouses.run()
+        self.warehouses = warehouses.data
+
         restaurants = RestaurantReader(self.restaurants_input)
+        restaurants.run()
+        self.restaurants = restaurants.data
+
         vehicles = VehicleReader(self.vehicles_input)
+        vehicles.run()
+        self.vehicles = vehicles.data
+
         supplier_warehouse_distances = SupplierWarehouseDistanceReader(self.supplier_warehouse_distance_input)
+        supplier_warehouse_distances.run()
+        self.supplier_warehouse_distance = supplier_warehouse_distances.data
+
         warehouse_restaurant_distances = WarehouseRestaurantDistanceReader(self.warehouse_restaurant_distance_input)
+        warehouse_restaurant_distances.run()
+        self.warehouse_restaurant_distance = warehouse_restaurant_distances.data
 
-
-# USER = os.getenv('CSCUSER')
-# PASSWORD = os.getenv('CSCPASSWORD')
-# HOST = os.getenv('CSCHOST')
-# PORT = os.getenv('CSCPORT')
-
-# reader = WarehouseRestaurantDistanceReader(user=USER,
-#                          password=PASSWORD, 
-#                          host=HOST, 
-#                          port=PORT)
-# reader.build_query()
-# warehouse_restaurant_distance = reader.read_query()
+    def optimise(self):
+        supply_chain_optimizer = SupplyChainOptimisation(vendors=self.vendors,
+                                                         warehouses=self.warehouses,
+                                                         restaurants=self.restaurants,
+                                                         vehicles=self.vehicles,
+                                                         supplier_warehouse_distances=self.supplier_warehouse_distance,
+                                                         warehouse_restaurant_distances=self.warehouse_restaurant_distance)
+        supply_chain_optimizer.solve()

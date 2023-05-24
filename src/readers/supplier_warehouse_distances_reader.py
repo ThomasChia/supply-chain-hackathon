@@ -10,6 +10,11 @@ class SupplierWarehouseDistanceReader(Reader):
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
         self.filters = filters
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
 
     def build_query(self):
         query = f"""
@@ -24,7 +29,7 @@ class SupplierWarehouseDistanceReader(Reader):
         supplier_warehouse_distance = self.connection.reader(self.query)
         for distance in supplier_warehouse_distance:
             distance['route_tuple'] = tuple(distance['route_tuple'].split(', '))
-        return [SupplierWarehouseDistance(**distance) for distance in supplier_warehouse_distance]
+        self.data = [SupplierWarehouseDistance(**distance) for distance in supplier_warehouse_distance]
 
 
 if __name__ == '__main__':
@@ -37,4 +42,4 @@ if __name__ == '__main__':
     reader.build_query()
     supplier_warehouse_distances = reader.read_query()
 
-    code.interact(locals=locals())
+    code.interact(local=locals())

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 @dataclass
 class Vendor:
     name: str
+    company: str
     location: str
     capacity: int
     additional_capacity: int
@@ -32,7 +33,6 @@ class Restaurant:
     location: str
     restaurant_demand: float
     current_stock: float
-    daily_chicken_demand: float
     daily_total_demand: float
     daily_profit: float
     fixed_cost: float

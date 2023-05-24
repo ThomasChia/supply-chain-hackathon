@@ -8,22 +8,27 @@ class RestaurantReader(Reader):
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
         self.filters = filters
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
 
     def build_query(self):
         query = f"""
-        SELECT location.name,
-                location.coords,
-                'demand.Fried Chicken Sold Daily(kg)' as restaurant_demand,
-                'demand.Current Stock of Raw Chicken (kgs)' as current_stock,
-                'demand.Restaurant Total Daily Sales(£)' as daily_total_demand,
-                'demand.Restaurant Daily Profits(£)' as daily_profit,
-                'demand.Restaurant fixed costs(£)' as fixed_cost
+        SELECT location.id as name,
+                st_astext(location.coords) as location,
+                demand.fried_chicken_sold_daily_kg_ as restaurant_demand,
+                demand.current_stock_of_raw_chicken__kgs_ as current_stock,
+                demand.restaurant_total_daily_sales_gbp_ as daily_total_demand,
+                demand.restaurant_daily_profits_gbp_ as daily_profit,
+                demand.restaurant_fixed_costs_gbp_ as fixed_cost
         FROM chicken_restaurants as location
         INNER JOIN chicken_restaurants_demand as demand
-            ON chicken_restaurants.id = chicken_restaurants_demand.id
+            ON location.id = demand.restaurant_id
         """
         self.query = query
 
     def read_query(self):
         restaurants = self.connection.reader(self.query)
-        return [Restaurant(**restaurant) for restaurant in restaurants]
+        self.data = [Restaurant(**restaurant) for restaurant in restaurants]

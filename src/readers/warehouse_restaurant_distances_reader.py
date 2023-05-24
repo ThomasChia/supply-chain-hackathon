@@ -10,6 +10,11 @@ class WarehouseRestaurantDistanceReader(Reader):
         self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
         self.query = ""
         self.filters = filters
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
 
     def build_query(self):
         query = f"""
@@ -24,20 +29,12 @@ class WarehouseRestaurantDistanceReader(Reader):
         warehouse_restaurant_distance = self.connection.reader(self.query)
         for distance in warehouse_restaurant_distance:
             distance['route_tuple'] = tuple(distance['route_tuple'].split(', '))
-        return [WarehouseRestaurantDistance(**distance) for distance in warehouse_restaurant_distance]
+        self.data = [WarehouseRestaurantDistance(**distance) for distance in warehouse_restaurant_distance]
 
 
 if __name__ == '__main__':
-    USER = os.getenv('CSCUSER')
-    PASSWORD = os.getenv('CSCPASSWORD')
-    HOST = os.getenv('CSCHOST')
-    PORT = os.getenv('CSCPORT')
-
-    reader = WarehouseRestaurantDistanceReader(user=USER,
-                                                password=PASSWORD, 
-                                                host=HOST, 
-                                                port=PORT)
+    reader = WarehouseRestaurantDistanceReader()
     reader.build_query()
     warehouse_restaurant_distances = reader.read_query()
 
-    code.interact(locals=locals())
+    code.interact(local=locals())
