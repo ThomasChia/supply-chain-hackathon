@@ -21,9 +21,13 @@ class SupplyChainOptimisation:
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_distances)
         self.vehicle_mapper = VehicleCostMapper(vehicles)
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
+        # supply is the amount of supply from each supplier to each warehouse
         self.supply = LpVariable.dicts("supply", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat='Continuous')
+        # distibution is the amount of chicken sent from each warehouse to each restaurant
         self.distribution = LpVariable.dicts("distribution", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
+        # supplier_warehouse_logistics is the route from supplier to warehouse, using a given logistics vehicle and company
         self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
+        # warehouse_restaurant_logistics is the route from warehouse to restaurant, using a given logistics vehicle and company
         self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
