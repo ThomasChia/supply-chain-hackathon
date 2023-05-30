@@ -26,9 +26,9 @@ class SupplyChainOptimisation:
         # distibution is the amount of chicken sent from each warehouse to each restaurant
         self.distribution = LpVariable.dicts("distribution", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
         # supplier_warehouse_logistics is the route from supplier to warehouse, using a given logistics vehicle and company
-        self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
+        # self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
         # warehouse_restaurant_logistics is the route from warehouse to restaurant, using a given logistics vehicle and company
-        self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
+        # self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -93,7 +93,7 @@ class SupplyChainOptimisation:
         '''
         Constraint for each vendor and warehouse combination their supply must be below the associated logistics capacity.
         '''
-        self.problem += lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.supplier_warehouse_logistics[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_warehouse_capacity_constraint(self, warehouse: Warehouse):
         self.problem += lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles) <= warehouse.inventory_capacity
@@ -102,7 +102,7 @@ class SupplyChainOptimisation:
         self.problem += lpSum(self.distribution[(warehouse.name, r.name, ve.company, ve.name)] for r in self.restaurants for ve in self.vehicles) <= lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles)
 
     def add_warehouse_logistics_constraint(self, warehouse: Warehouse, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.warehouse_restaurant_logistics[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_restaurant_demand_constraint(self, restaurant: Restaurant):
         self.problem += lpSum(self.distribution[(w.name, restaurant.name, ve.company, ve.name)] for w in self.warehouses for ve in self.vehicles) >= restaurant.restaurant_demand
@@ -114,13 +114,13 @@ class SupplyChainOptimisation:
         '''
         Constraint to ensure the number of vehicles used between suppliers and warehouses is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.supplier_warehouse_logistics[(v.name, w.name, ve.company, ve.name)] for v in self.vendors for w in self.warehouses) >= ve.number_available
+        self.problem += lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] for v in self.vendors for w in self.warehouses) >= ve.number_available
 
     def add_vehicle_number_availability_constraints_warehouse_restaurant(self, ve: Vehicle):
         '''
         Constraint to ensure the number of vehicles used between warehouses and restaurants is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.warehouse_restaurant_logistics[(w.name, r.name, ve.company, ve.name)] for w in self.warehouses for r in self.restaurants) >= ve.number_available
+        self.problem += lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] for w in self.warehouses for r in self.restaurants) >= ve.number_available
 
     def print_results(self):
         if self.problem.status == 1:
