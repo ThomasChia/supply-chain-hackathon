@@ -37,6 +37,9 @@ class CostMinimiserPlanner:
     def run(self):
         self.get_data()
         self.optimise()
+        if self.optimiser != 1:
+            pass
+        self.create_output()
 
     def get_data(self):
         vendors = VendorReader(self.vendors_input)
@@ -64,10 +67,13 @@ class CostMinimiserPlanner:
         self.warehouse_restaurant_distance = warehouse_restaurant_distances.data
 
     def optimise(self):
-        supply_chain_optimizer = SupplyChainOptimisation(vendors=self.vendors,
-                                                         warehouses=self.warehouses,
-                                                         restaurants=self.restaurants,
-                                                         vehicles=self.vehicles,
-                                                         supplier_warehouse_distances=self.supplier_warehouse_distance,
-                                                         warehouse_restaurant_distances=self.warehouse_restaurant_distance)
-        supply_chain_optimizer.solve()
+        self.optimiser = SupplyChainOptimisation(vendors=self.vendors,
+                                                 warehouses=self.warehouses,
+                                                 restaurants=self.restaurants,
+                                                 vehicles=self.vehicles,
+                                                 supplier_warehouse_distances=self.supplier_warehouse_distance,
+                                                 warehouse_restaurant_distances=self.warehouse_restaurant_distance)
+        self.optimiser.solve()
+
+    def create_output(self):
+        pass
