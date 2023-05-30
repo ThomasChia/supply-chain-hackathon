@@ -28,10 +28,6 @@ class SupplyChainOptimisation:
         self.supply = LpVariable.dicts("supply", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat='Continuous')
         # distibution is the amount of chicken sent from each warehouse to each restaurant
         self.distribution = LpVariable.dicts("distribution", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
-        # supplier_warehouse_logistics is the route from supplier to warehouse, using a given logistics vehicle and company
-        # self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
-        # warehouse_restaurant_logistics is the route from warehouse to restaurant, using a given logistics vehicle and company
-        # self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -170,8 +166,6 @@ class SupplyChainOptimisation:
         self.add_vehicle_constraints()
 
         self.problem.solve()
-
-        # self.print_results()
 
 
 if __name__ == "__main__":

@@ -78,4 +78,5 @@ class CostMinimiserPlanner:
 
     def create_output(self):
         outputter = OptimisationOutputter(optimiser=self.optimiser)
-        outputter.print_output()
+        # outputter.print_output()
+        outputter.create_table_output()

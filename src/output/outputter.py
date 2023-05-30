@@ -1,7 +1,13 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 import logging
 from optimisers.optimiser import SupplyChainOptimisation
-from output.output import Output, TotalOutput
+from output.output import (VendorOutput,
+                           WarehouseOutput,
+                           RestaurantOutput,
+                           FlowOutput,
+                           TotalOutput)
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +33,15 @@ class OptimisationOutputter(Outputter):
             return
         
     def create_table_output(self):
-        return super().create_table_output()
+        supply_output = []
+        for supply in self.optimiser.supply:
+            flow_output = self.create_flow_output(supply, self.optimiser.supply, supply=True)
+            supply_output.append(flow_output)
+            
+        distribution_output = []
+        for distribution in self.optimiser.distribution:
+            flow_output = self.create_flow_output(distribution, self.optimiser.distribution, supply=False)
+            distribution_output.append(flow_output)
 
     def print_output(self):
         if self.optimiser:
@@ -70,3 +84,42 @@ class OptimisationOutputter(Outputter):
 
     def print_total_cost(self):
         logger.info(f"Total cost: {self.optimiser.problem.objective.value()}")
+
+    def create_flow_output(self, flow, chain, supply=True):
+        source = flow[0]
+        target = flow[1]
+        vehicle_company = flow[2]
+        vehicle_type = flow [3]
+        amount = chain[flow].varValue
+
+        if supply:
+            stage = 'supply'
+            source_type = 'farm'
+            source_cost = chain[flow].varValue * self.optimiser.vendors.cost_per_kg
+            target_type = 'warehouse'
+            transport_cost = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
+            transport_co2_emissions = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
+        else:
+            stage = 'distribution'
+            source_type = 'warehouse'
+            target_type = 'restaurant'
+            transport_cost = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
+            transport_co2_emissions = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
+
+        return FlowOutput(stage=stage,
+                          source=source,
+                          source_type=source_type,
+                          target=target,
+                          target_type=target_type,
+                          vehicle_company=vehicle_company,
+                          vehicle_type=vehicle_type,
+                          amount=amount,
+                          transport_cost=transport_cost,
+                          transport_co2_emissions=transport_co2_emissions)
+    
+    def create_site_from_flow(self, flow_list: List[FlowOutput]):
+        amounts = defaultdict(float)
+        cost = defaultdict(float)
+        emissions = defaultdict(float)
+        for flow in flow_list:
+            amounts[flow.source] += flow.amount
