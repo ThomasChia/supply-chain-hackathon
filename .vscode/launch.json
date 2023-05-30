@@ -16,7 +16,8 @@
                 "CSCUSER": "csc_admin",
                 "CSCPASSWORD": "iXMRMKWNQbvdCCg19zVy",
                 "CSCHOST": "supply-chain.cspxerxok0ew.eu-west-2.rds.amazonaws.com",
-                "CSCPORT": "5432"
+                "CSCPORT": "5432",
+                "DEBUG": "True"
             },
         },
         {
