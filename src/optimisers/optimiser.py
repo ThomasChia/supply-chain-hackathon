@@ -165,9 +165,9 @@ class SupplyChainOptimisation:
         self.add_vendor_constraints()
         self.add_warehouse_constraints()
         self.add_restaurant_constraints()
-        # self.add_vendor_warehouse_constraints()
-        # self.add_warehouse_restaurant_constraints()
-        # self.add_vehicle_constraints()
+        self.add_vendor_warehouse_constraints()
+        self.add_warehouse_restaurant_constraints()
+        self.add_vehicle_constraints()
 
         self.problem.solve()
 
