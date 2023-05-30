@@ -171,7 +171,7 @@ class SupplyChainOptimisation:
 
         self.problem.solve()
 
-        self.print_results()
+        # self.print_results()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from optimisers.optimiser import SupplyChainOptimisation
 import os
+from output.outputter import OptimisationOutputter
 from readers.restaurant_reader import RestaurantReader
 from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
 from readers.vehicle_reader import VehicleReader
@@ -76,4 +77,5 @@ class CostMinimiserPlanner:
         self.optimiser.solve()
 
     def create_output(self):
-        pass
+        outputter = OptimisationOutputter(optimiser=self.optimiser)
+        outputter.print_output()

@@ -35,8 +35,6 @@ class OptimisationOutputter(Outputter):
             self.print_supply_co2_output()
             self.print_distribution_co2_output()
             self.print_total_cost()
-        else:
-            return
         
     def print_supply_output(self):
         for v in self.optimiser.vendors:
