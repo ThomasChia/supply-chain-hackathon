@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import logging
 from optimisers.optimiser import SupplyChainOptimisation
+from output.output import Output, TotalOutput
 
 logger = logging.getLogger(__name__)
 
