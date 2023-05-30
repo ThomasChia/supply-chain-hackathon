@@ -1,9 +1,10 @@
 from data_objects.flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
 from data_objects.vehicles import Vehicle
 import logging
-from mapper import RouteCostMapper, VehicleCostMapper
+from mapper import RouteCostMapper, VehicleCostMapper, SupplierCostMapper, WarehouseCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize
 from data_objects.sites import Vendor, Warehouse, Restaurant
+import time
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,8 @@ class SupplyChainOptimisation:
         self.warehouses = warehouses
         self.restaurants = restaurants
         self.vehicles = vehicles
+        self.supplier_cost_mapper = SupplierCostMapper(vendors)
+        self.warehouse_cost_mapper = WarehouseCostMapper(warehouses)
         self.supplier_warehouse_mapper = RouteCostMapper(supplier_warehouse_distances)
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_distances)
         self.vehicle_mapper = VehicleCostMapper(vehicles)
@@ -148,6 +151,7 @@ class SupplyChainOptimisation:
             logger.warning("No optimal solution found.")
 
     def solve(self):
+        logger.info("Building optimisation problem.")
         total_cost = (
             self.get_supply_cost() + 
             self.get_supply_to_warehouse_cost() +
@@ -165,7 +169,13 @@ class SupplyChainOptimisation:
         self.add_warehouse_restaurant_constraints()
         self.add_vehicle_constraints()
 
+        logger.info(f"Solving optimisation for {len(self.problem._variables)} variables and {len(self.problem.constraints)} constraints.")
+        start_time = time.time()
+
         self.problem.solve()
+
+        end_time = time.time()
+        logger.info(f"Optimiser solved in {end_time - start_time}.")
 
 
 if __name__ == "__main__":

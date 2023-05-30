@@ -95,22 +95,27 @@ class OptimisationOutputter(Outputter):
         if supply:
             stage = 'supply'
             source_type = 'farm'
-            source_cost = chain[flow].varValue * self.optimiser.vendors.cost_per_kg
+            source_cost = chain[flow].varValue * self.optimiser.supplier_cost_mapper.supplier_mapping[source]
             target_type = 'warehouse'
+            target_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[target]
             transport_cost = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
             transport_co2_emissions = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
         else:
             stage = 'distribution'
             source_type = 'warehouse'
+            source_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[source]
             target_type = 'restaurant'
+            target_cost = 0
             transport_cost = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
             transport_co2_emissions = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
 
         return FlowOutput(stage=stage,
                           source=source,
                           source_type=source_type,
+                          source_cost=source_cost,
                           target=target,
                           target_type=target_type,
+                          target_cost=target_cost,
                           vehicle_company=vehicle_company,
                           vehicle_type=vehicle_type,
                           amount=amount,
