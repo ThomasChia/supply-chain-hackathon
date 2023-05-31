@@ -87,6 +87,9 @@ class CostMinimiserPlanner:
     
         self.optimiser.solve()
 
+    def loose_optimise(self):
+        pass
+
     def create_output(self):
         logger.info("Building output.")
         outputter = OptimisationOutputter(optimiser=self.optimiser)
