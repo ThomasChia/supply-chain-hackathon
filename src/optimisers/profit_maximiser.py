@@ -174,6 +174,7 @@ class SupplyChainProfitMaximiser:
             print("No optimal solution found.")
 
     def solve(self):
+        logger.info("Building profit maximising optimisation problem.")
         total_profit = (
             self.get_daily_chicken_sales() +
             self.get_daily_non_chicken_sales() -
@@ -201,8 +202,6 @@ class SupplyChainProfitMaximiser:
 
         end_time = time.time()
         logger.info(f"Optimiser solved in {end_time - start_time}.")
-
-        self.print_results()
 
 
 if __name__ == "__main__":

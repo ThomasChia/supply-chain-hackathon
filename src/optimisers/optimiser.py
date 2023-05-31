@@ -151,7 +151,7 @@ class SupplyChainOptimisation:
             logger.warning("No optimal solution found.")
 
     def solve(self):
-        logger.info("Building optimisation problem.")
+        logger.info("Building cost minimising optimisation problem.")
         total_cost = (
             self.get_supply_cost() + 
             self.get_supply_to_warehouse_cost() +
