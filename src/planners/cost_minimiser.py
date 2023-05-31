@@ -1,5 +1,6 @@
 import logging
 from optimisers.optimiser import SupplyChainOptimisation
+from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
 from output.outputter import OptimisationOutputter
 from readers.restaurant_reader import RestaurantReader
@@ -43,7 +44,7 @@ class CostMinimiserPlanner:
         self.get_data()
         self.optimise()
         if self.optimiser.problem.status != 1:
-            pass
+            self.loose_optimise()
         self.create_output()
 
     def get_data(self):
@@ -88,7 +89,14 @@ class CostMinimiserPlanner:
         self.optimiser.solve()
 
     def loose_optimise(self):
-        pass
+        self.optimiser = SupplyChainProfitMaximiser(vendors=self.vendors,
+                                                    warehouses=self.warehouses,
+                                                    restaurants=self.restaurants,
+                                                    vehicles=self.vehicles,
+                                                    supplier_warehouse_distances=self.supplier_warehouse_distance,
+                                                    warehouse_restaurant_distances=self.warehouse_restaurant_distance)
+    
+        self.optimiser.solve()
 
     def create_output(self):
         logger.info("Building output.")
