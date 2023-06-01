@@ -21,15 +21,6 @@
             },
         },
         {
-            "name": "Python: Optimiser",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/optimisers/optimiser.py",
-            "cwd": "${workspaceFolder}/src",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
             "name": "Python: Run Profit Max App",
             "type": "python",
             "request": "launch",

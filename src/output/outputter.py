@@ -5,7 +5,7 @@ from optimisers.optimiser import SupplyChainOptimisation
 from output.output import (VendorOutput,
                            WarehouseOutput,
                            RestaurantOutput,
-                           FlowOutput,
+                           Edge,
                            TotalOutput)
 from typing import List
 
@@ -109,20 +109,20 @@ class OptimisationOutputter(Outputter):
             transport_cost = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
             transport_co2_emissions = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
 
-        return FlowOutput(stage=stage,
-                          source=source,
-                          source_type=source_type,
-                          source_cost=source_cost,
-                          target=target,
-                          target_type=target_type,
-                          target_cost=target_cost,
-                          vehicle_company=vehicle_company,
-                          vehicle_type=vehicle_type,
-                          amount=amount,
-                          transport_cost=transport_cost,
-                          transport_co2_emissions=transport_co2_emissions)
+        return Edge(stage=stage,
+                    source=source,
+                    source_type=source_type,
+                    source_cost=source_cost,
+                    target=target,
+                    target_type=target_type,
+                    target_cost=target_cost,
+                    vehicle_company=vehicle_company,
+                    vehicle_type=vehicle_type,
+                    amount=amount,
+                    transport_cost=transport_cost,
+                    transport_co2_emissions=transport_co2_emissions)
     
-    def create_site_from_flow(self, flow_list: List[FlowOutput]):
+    def create_site_from_flow(self, flow_list: List[Edge]):
         amounts = defaultdict(float)
         cost = defaultdict(float)
         emissions = defaultdict(float)
