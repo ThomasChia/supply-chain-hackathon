@@ -32,10 +32,12 @@ class Edge:
     source_name: str
     source_type: str
     source_cost: float
+    source_co2_emissions: float
     target_id: str
     target_name: str
     target_type: str
     target_cost: float
+    target_co2_emissions: float
     vehicle_company: str
     vehicle_type: str
     amount: float
@@ -50,7 +52,7 @@ class TotalOutput:
 
 class SupplyChain:
     def __init__(self, supply_chain:List[Edge]):
-        self.supply_chain_plan = supply_chain
+        self.supply_chain = supply_chain
 
     def get_totals(self):
         """
@@ -58,8 +60,13 @@ class SupplyChain:
         """
         pass
 
-    def plan_to_list():
+    def plan_to_list(self):
         pass
+
+    def get_edge_by_source_and_target(self, source_id, source_name, target_id, target_name):
+        for edge in self.supply_chain:
+            if (edge.source_id, edge.source_name, edge.target_id, edge.target_name) == (source_id, source_name, target_id, target_name):
+                return edge
 
 
 
