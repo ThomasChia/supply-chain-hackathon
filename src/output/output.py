@@ -50,15 +50,30 @@ class TotalOutput:
     total_cost: float
     total_co2_emissions: float
 
+    def update_metrics_for_edge(self, edge: Edge):
+        if edge.stage == 'supply':
+            self.total_cost += edge.source_cost + edge.target_cost + edge.transport_cost
+            self.total_co2_emissions += edge.source_co2_emissions + edge.target_co2_emissions + edge.transport_co2_emissions
+        elif edge.stage == 'distribution':
+            self.total_amount += edge.amount
+            self.total_cost += edge.target_cost + edge.transport_cost
+            self.total_co2_emissions += edge.target_co2_emissions + edge.transport_co2_emissions
+
+
 class SupplyChain:
     def __init__(self, supply_chain:List[Edge]):
         self.supply_chain = supply_chain
+        self.metrics: TotalOutput = TotalOutput(0, 0, 0)
 
     def get_totals(self):
         """
-        This method will return the total amounts, costs, and co2 emissions for a given list of flow outputs.
+        This method returns the total amounts, costs, and co2 emissions for a given list of flow outputs.
         """
-        pass
+        for edge in self.supply_chain:
+            self.metrics.update_metrics_for_edge(edge)
+
+    def append_edge(self, edge:Edge):
+        self.supply_chain = self.supply_chain.append(edge)
 
     def plan_to_list(self):
         pass

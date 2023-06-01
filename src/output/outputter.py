@@ -6,6 +6,7 @@ from output.output import (VendorOutput,
                            WarehouseOutput,
                            RestaurantOutput,
                            Edge,
+                           SupplyChain,
                            TotalOutput)
 from typing import List
 
@@ -42,6 +43,9 @@ class OptimisationOutputter(Outputter):
         for distribution in self.optimiser.distribution:
             flow_output = self.create_flow_output(distribution, self.optimiser.distribution, supply=False)
             distribution_output.append(flow_output)
+
+        supply_output.append(distribution_output)
+        return SupplyChain(supply_output)
 
     def print_output(self):
         if self.optimiser:
@@ -86,8 +90,10 @@ class OptimisationOutputter(Outputter):
         logger.info(f"Total cost: {self.optimiser.problem.objective.value()}")
 
     def create_flow_output(self, flow, chain, supply=True):
-        source = flow[0]
-        target = flow[1]
+        source_id = flow[0]
+        source_name = flow[0]
+        target_id = flow[1]
+        target_name = flow[1]
         vehicle_company = flow[2]
         vehicle_type = flow [3]
         amount = chain[flow].varValue
@@ -95,27 +101,35 @@ class OptimisationOutputter(Outputter):
         if supply:
             stage = 'supply'
             source_type = 'farm'
-            source_cost = chain[flow].varValue * self.optimiser.supplier_cost_mapper.supplier_mapping[source]
+            source_cost = chain[flow].varValue * self.optimiser.supplier_cost_mapper.supplier_mapping[source_id]
+            source_co2_emissions = chain[flow].varValue * self.optimiser.vendor_emission_mapping[source_id]
             target_type = 'warehouse'
-            target_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[target]
-            transport_cost = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
-            transport_co2_emissions = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
+            target_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[target_id]
+            target_co2_emissions = 0
+            transport_cost = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source_id, target_id)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
+            transport_co2_emissions = chain[flow].varValue * self.optimiser.supplier_warehouse_mapper.distance_mapping[(source_id, target_id)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
         else:
             stage = 'distribution'
             source_type = 'warehouse'
-            source_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[source]
+            source_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[source_id]
+            source_co2_emissions = 0
             target_type = 'restaurant'
             target_cost = 0
-            transport_cost = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
-            transport_co2_emissions = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source, target)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
+            target_co2_emissions = 0
+            transport_cost = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source_id, target_id)] * self.optimiser.vehicle_mapper.cost_mapping[(vehicle_company, vehicle_type)]
+            transport_co2_emissions = chain[flow].varValue * self.optimiser.warehouse_restaurant_mapper.distance_mapping[(source_id, target_id)] * self.optimiser.vehicle_mapper.co2_mapping[(vehicle_company, vehicle_type)]
 
         return Edge(stage=stage,
-                    source=source,
+                    source_id=source_id,
+                    source_name=source_name,
                     source_type=source_type,
                     source_cost=source_cost,
-                    target=target,
+                    source_co2_emissions=source_co2_emissions,
+                    target_id=target_id,
+                    target_name=target_name,
                     target_type=target_type,
                     target_cost=target_cost,
+                    target_co2_emissions=target_co2_emissions,
                     vehicle_company=vehicle_company,
                     vehicle_type=vehicle_type,
                     amount=amount,

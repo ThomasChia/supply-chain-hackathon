@@ -3,6 +3,7 @@ from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
 from output.outputter import OptimisationOutputter
+from output.output import SupplyChain
 from readers.restaurant_reader import RestaurantReader
 from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
 from readers.vehicle_reader import VehicleReader
@@ -39,6 +40,7 @@ class CostMinimiserPlanner:
         self.vehicles = []
         self.supplier_warehouse_distance = []
         self.warehouse_restaurant_distance = []
+        self.supply_chain: SupplyChain = None
 
     def run(self):
         self.get_data()
@@ -101,4 +103,5 @@ class CostMinimiserPlanner:
     def create_output(self):
         logger.info("Building output.")
         outputter = OptimisationOutputter(optimiser=self.optimiser)
-        outputter.create_table_output()
+        self.supply_chain = outputter.create_table_output()
+        self.supply_chain.get_totals()
