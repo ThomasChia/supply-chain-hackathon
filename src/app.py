@@ -6,6 +6,7 @@ from planners.cost_minimiser import CostMinimiserPlanner
 from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
+from output.output import SupplyChain
 # from data.test_data import vendors, warehouses, restaurants, vehicles, supplier_warehouse_costs, warehouse_restaurant_costs
 from readers.warehouse_reader import WarehouseReader
 
@@ -33,6 +34,8 @@ if __name__ == '__main__':
                                    supplier_warehouse_distance_input=[],
                                    warehouse_restaurant_distance_input=[])
     planner.run()
+    planner_supply_chain = planner.supply_chain.plan_to_list()
+    test_supply_chain = SupplyChain.list_to_plan(planner_supply_chain['supply_chain'])
 
     evaluator = Evaluator(supply_chain=planner.supply_chain, active_sites=[('F005', 'F005'),
                                                                            ('F014', 'F014'),
@@ -70,5 +73,6 @@ if __name__ == '__main__':
                                                                            ('R030', 'R030')
                                                                            ])
     evaluator.calculate_new_supply_chain()
+    evaluator_supply_chain = evaluator.new_supply_chain.plan_to_list()
           
     code.interact(local=locals())

@@ -72,11 +72,24 @@ class SupplyChain:
         for edge in self.supply_chain:
             self.metrics.update_metrics_for_edge(edge)
 
-    def append_edge(self, edge:Edge):
-        self.supply_chain = self.supply_chain.append(edge)
+    @classmethod
+    def append_edge(self, edge:Edge, supply_chain:List[Edge]):
+        supply_chain = supply_chain.append(edge)
 
     def plan_to_list(self):
-        pass
+        supply_chain_dict = self.__dict__.copy()
+        supply_chain_dict['supply_chain'] = [edge.__dict__ for edge in supply_chain_dict['supply_chain']]
+        supply_chain_dict['metrics'] = supply_chain_dict['metrics'].__dict__
+        return supply_chain_dict
+    
+    @classmethod
+    def list_to_plan(self, supply_chain_list):
+        supply_chain = []
+        for edge in supply_chain_list:
+            SupplyChain.append_edge(edge=Edge(**edge), supply_chain=supply_chain)
+        supply_chain = SupplyChain(supply_chain)
+        supply_chain.get_totals()
+        return supply_chain
 
     def get_edge_by_source_and_target(self, source_id, source_name, target_id, target_name):
         for edge in self.supply_chain:

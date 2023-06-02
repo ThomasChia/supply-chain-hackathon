@@ -8,7 +8,7 @@ class Evaluator:
     def __init__(self, supply_chain: SupplyChain, active_sites: list[tuple]):
         self.supply_chain = supply_chain.supply_chain
         self.active_sites = active_sites
-        self.new_supply_chain: List[Edge] = []
+        self.new_supply_chain: SupplyChain = []
         self.connector_edges: Dict[str: [Edge]] = {}
 
     def calculate_new_supply_chain(self):
@@ -100,3 +100,4 @@ class Evaluator:
             
     def convert_to_supply_chain(self):
         self.new_supply_chain = SupplyChain(self.new_supply_chain)
+        self.new_supply_chain.get_totals()
