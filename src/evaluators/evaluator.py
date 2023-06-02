@@ -1,12 +1,12 @@
 import logging
-from output.output import Edge
+from output.output import Edge, SupplyChain
 from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
 class Evaluator:
-    def __init__(self, supply_chain: List[Edge], active_sites: list[tuple]):
-        self.supply_chain = supply_chain
+    def __init__(self, supply_chain: SupplyChain, active_sites: list[tuple]):
+        self.supply_chain = supply_chain.supply_chain
         self.active_sites = active_sites
         self.new_supply_chain: List[Edge] = []
         self.connector_edges: Dict[str: [Edge]] = {}
@@ -48,14 +48,14 @@ class Evaluator:
     def add_connector_edge(self, edge: Edge, connector_edges):
         if edge.stage == 'supply':
             if edge.target_id not in connector_edges:
-                connector_edges[edge.target_id] = edge
+                connector_edges[edge.target_id] = [edge]
             else:
-                connector_edges[edge.target_id] = connector_edges[edge.target_id].append(edge)
+                connector_edges[edge.target_id] = connector_edges[edge.target_id].extend([edge])
         elif edge.stage == 'distribution':
             if edge.source_id not in connector_edges:
-                connector_edges[edge.source_id] = edge
+                connector_edges[edge.source_id] = [edge]
             else:
-                connector_edges[edge.source_id] = connector_edges[edge.target_id].append(edge)
+                connector_edges[edge.source_id] = connector_edges[edge.source_id].extend([edge])
         return connector_edges
     
     def equate_amounts(self):
@@ -68,7 +68,7 @@ class Evaluator:
                 elif edge.stage == 'distribution':
                     outflow += edge.amount
             
-            if inflow >= outflow:
+            if inflow <= outflow:
                 flow_difference = inflow - outflow
                 distributed_supply_shortage = flow_difference / len(node)
                 for edge in node:
@@ -77,7 +77,7 @@ class Evaluator:
             elif inflow == outflow:
                 continue
             else:
-                raise Exception("Outflow greater than inflow.")
+                raise Exception("Inflow greater than outflow.")
             
     def replace_connector_edges(self):
         for edge in self.new_supply_chain:

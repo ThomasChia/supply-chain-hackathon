@@ -36,15 +36,17 @@ class OptimisationOutputter(Outputter):
     def create_table_output(self):
         supply_output = []
         for supply in self.optimiser.supply:
-            flow_output = self.create_flow_output(supply, self.optimiser.supply, supply=True)
-            supply_output.append(flow_output)
+            if self.optimiser.supply[supply].varValue > 0:
+                flow_output = self.create_flow_output(supply, self.optimiser.supply, supply=True)
+                supply_output.append(flow_output)
             
         distribution_output = []
         for distribution in self.optimiser.distribution:
-            flow_output = self.create_flow_output(distribution, self.optimiser.distribution, supply=False)
-            distribution_output.append(flow_output)
+            if self.optimiser.distribution[distribution].varValue > 0:
+                flow_output = self.create_flow_output(distribution, self.optimiser.distribution, supply=False)
+                distribution_output.append(flow_output)
 
-        supply_output.append(distribution_output)
+        supply_output.extend(distribution_output)
         return SupplyChain(supply_output)
 
     def print_output(self):
@@ -102,7 +104,7 @@ class OptimisationOutputter(Outputter):
             stage = 'supply'
             source_type = 'farm'
             source_cost = chain[flow].varValue * self.optimiser.supplier_cost_mapper.supplier_mapping[source_id]
-            source_co2_emissions = chain[flow].varValue * self.optimiser.vendor_emission_mapping[source_id]
+            source_co2_emissions = chain[flow].varValue * self.optimiser.supplier_cost_mapper.supplier_co2_mapping[source_id]
             target_type = 'warehouse'
             target_cost = chain[flow].varValue * self.optimiser.warehouse_cost_mapper.warehouse_mapping[target_id]
             target_co2_emissions = 0

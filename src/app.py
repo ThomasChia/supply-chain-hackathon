@@ -1,4 +1,5 @@
 import code
+from evaluators.evaluator import Evaluator
 import logging
 from logs import setup_logs
 from planners.cost_minimiser import CostMinimiserPlanner
@@ -32,5 +33,25 @@ if __name__ == '__main__':
                                    supplier_warehouse_distance_input=[],
                                    warehouse_restaurant_distance_input=[])
     planner.run()
+
+    evaluator = Evaluator(supply_chain=planner.supply_chain, active_sites=[('F005', 'F005'),
+                                                                           ('F014', 'F014'),
+                                                                           ('F020', 'F020'),
+                                                                           ('WH035', 'WH035'),
+                                                                           ('WH038', 'WH038'),
+                                                                           ('WH001', 'WH001'),
+                                                                           ('WH002', 'WH002'),
+                                                                           ('WH003', 'WH003'),
+                                                                           ('WH005', 'WH005'),
+                                                                           ('WH004', 'WH004'),
+                                                                           ('R027', 'R027'),
+                                                                           ('R010', 'R010'),
+                                                                           ('R011', 'R011'),
+                                                                           ('R001', 'R001'),
+                                                                           ('R023', 'R023'),
+                                                                           ('R029', 'R029'),
+                                                                           ('R012', 'R012'),
+                                                                           ])
+    evaluator.calculate_new_supply_chain()
           
     code.interact(local=locals())

@@ -21,7 +21,7 @@ class SupplyChainOptimisation:
         self.warehouses = warehouses
         self.restaurants = restaurants
         self.vehicles = vehicles
-        self.supplier_cost_mapper = SupplierCostMapper(vendors)
+        self.supplier_cost_mapper = SupplierCostMapper(vendors) 
         self.warehouse_cost_mapper = WarehouseCostMapper(warehouses)
         self.supplier_warehouse_mapper = RouteCostMapper(supplier_warehouse_distances)
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_distances)
@@ -44,8 +44,8 @@ class SupplyChainOptimisation:
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
-    def supplier_co2_emissions_cost(self):
-        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.vendor_emission_mapping[v.name] for v in self.vendors for w in self.warehouses for ve in self.vehicles) 
+    def get_supplier_co2_emissions_cost(self):
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_cost_mapper.supplier_co2_mapping[v.name] for v in self.vendors for w in self.warehouses for ve in self.vehicles) 
     
     def get_supply_to_warehouse_co2_emissions_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -156,6 +156,7 @@ class SupplyChainOptimisation:
             self.get_supply_to_warehouse_cost() +
             self.get_warehouse_storage_cost() +
             self.get_warehouse_to_restaurant_cost() +
+            self.get_supplier_co2_emissions_cost() +
             self.get_supply_to_warehouse_co2_emissions_cost() +
             self.get_warehouse_to_restaurant_co2_emissions_cost()
             # TODO add in supplier co2 emissions cost

@@ -12,7 +12,6 @@ class RouteCostMapper:
 
     def get_cost(self, distance_tuple: tuple[str, str]) -> float:
         return self.distance_mapping.get(distance_tuple, 0.0)  # Return 0.0 if distance_tuple is not found
-    
 
 class VehicleCostMapper:
     def __init__(self, vehicle_costs: List[Vehicle]):
@@ -28,9 +27,13 @@ class VehicleCostMapper:
 class SupplierCostMapper:
     def __init__(self, suppliers: List[Vendor]):
         self.supplier_mapping = self.get_cost_mapping(suppliers)
+        self.supplier_co2_mapping = self.get_co2_mapping(suppliers)
 
     def get_cost_mapping(self, suppliers: List[Vendor])  -> dict[str, float]:
         return {supplier.name: supplier.cost_per_kg for supplier in suppliers}
+    
+    def get_co2_mapping(self, suppliers: List[Vendor]) -> dict[str, float]:
+        return {supplier.name: float(supplier.co2_emissions_per_kg) for supplier in suppliers}
     
 class WarehouseCostMapper:
     def __init__(self, warehouses: List[Warehouse]):
@@ -38,3 +41,7 @@ class WarehouseCostMapper:
 
     def get_cost_mapping(self, warehouses: List[Warehouse])  -> dict[str, float]:
         return {warehouse.name: warehouse.storage_cost_per_kg for warehouse in warehouses}
+    
+# class SupplierEmissionsMapper:
+#     def __init__(self, suppliers: List[Vendor]):
+#         self.supplier_mapping
