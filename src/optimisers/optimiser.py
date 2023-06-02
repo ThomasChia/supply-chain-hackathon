@@ -1,9 +1,13 @@
 from data_objects.flows import Distance, SupplierWarehouseDistance, WarehouseRestaurantDistance
-from mapper import RouteCostMapper, VehicleCostMapper
+from data_objects.vehicles import Vehicle
+import logging
+from mapper import RouteCostMapper, VehicleCostMapper, SupplierCostMapper, WarehouseCostMapper
 from pulp import LpProblem, LpVariable, lpSum, LpMinimize
 from data_objects.sites import Vendor, Warehouse, Restaurant
+import time
 from typing import List
-from data_objects.vehicles import Vehicle
+
+logger = logging.getLogger(__name__)
 
 class SupplyChainOptimisation:
     def __init__(self,
@@ -17,14 +21,16 @@ class SupplyChainOptimisation:
         self.warehouses = warehouses
         self.restaurants = restaurants
         self.vehicles = vehicles
+        self.supplier_cost_mapper = SupplierCostMapper(vendors)
+        self.warehouse_cost_mapper = WarehouseCostMapper(warehouses)
         self.supplier_warehouse_mapper = RouteCostMapper(supplier_warehouse_distances)
         self.warehouse_restaurant_mapper = RouteCostMapper(warehouse_restaurant_distances)
         self.vehicle_mapper = VehicleCostMapper(vehicles)
         self.problem = LpProblem("SupplyChainOptimization", LpMinimize)
+        # supply is the amount of supply from each supplier to each warehouse
         self.supply = LpVariable.dicts("supply", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat='Continuous')
+        # distibution is the amount of chicken sent from each warehouse to each restaurant
         self.distribution = LpVariable.dicts("distribution", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
-        self.supplier_warehouse_logistics = LpVariable.dicts("supplier_warehouse_logistics", [(v.name, w.name, ve.company, ve.name) for v in vendors for w in warehouses for ve in vehicles], lowBound=0, cat="Integer")
-        self.warehouse_restaurant_logistics = LpVariable.dicts("warehouse_restaurant_logistics", [(w.name, r.name, ve.company, ve.name) for w in warehouses for r in restaurants for ve in vehicles], lowBound=0, cat="Integer")
 
     def get_supply_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * v.cost_per_kg for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -38,15 +44,8 @@ class SupplyChainOptimisation:
     def get_warehouse_to_restaurant_cost(self):
         return lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
     
-    # def get_restaurant_fixed_costs(self):
-    #     return lpSum(r.fixed_cost for r in self.restaurants)
-    
-    # def get_restaurant_revenue(self):
-    #     return lpSum(self.distribution[(w.name, r.name)] * r.daily_profit for w in self.warehouses for r in self.restaurants)
-    
-    def get_co2_emissions_cost(self):
-        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles) + \
-                lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
+    def supplier_co2_emissions_cost(self):
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.vendor_emission_mapping[v.name] for v in self.vendors for w in self.warehouses for ve in self.vehicles) 
     
     def get_supply_to_warehouse_co2_emissions_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -89,7 +88,7 @@ class SupplyChainOptimisation:
         '''
         Constraint for each vendor and warehouse combination their supply must be below the associated logistics capacity.
         '''
-        self.problem += lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.supplier_warehouse_logistics[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.supply[(vendor.name, warehouse.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_warehouse_capacity_constraint(self, warehouse: Warehouse):
         self.problem += lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles) <= warehouse.inventory_capacity
@@ -98,7 +97,7 @@ class SupplyChainOptimisation:
         self.problem += lpSum(self.distribution[(warehouse.name, r.name, ve.company, ve.name)] for r in self.restaurants for ve in self.vehicles) <= lpSum(self.supply[(v.name, warehouse.name, ve.company, ve.name)] for v in self.vendors for ve in self.vehicles)
 
     def add_warehouse_logistics_constraint(self, warehouse: Warehouse, restaurant: Restaurant):
-        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.warehouse_restaurant_logistics[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
+        self.problem += lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] for ve in self.vehicles) <= lpSum(self.distribution[(warehouse.name, restaurant.name, ve.company, ve.name)] * ve.capacity for ve in self.vehicles)
 
     def add_restaurant_demand_constraint(self, restaurant: Restaurant):
         self.problem += lpSum(self.distribution[(w.name, restaurant.name, ve.company, ve.name)] for w in self.warehouses for ve in self.vehicles) >= restaurant.restaurant_demand
@@ -110,13 +109,13 @@ class SupplyChainOptimisation:
         '''
         Constraint to ensure the number of vehicles used between suppliers and warehouses is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.supplier_warehouse_logistics[(v.name, w.name, ve.company, ve.name)] for v in self.vendors for w in self.warehouses) >= ve.number_available
+        self.problem += lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] for v in self.vendors for w in self.warehouses) >= ve.number_available
 
     def add_vehicle_number_availability_constraints_warehouse_restaurant(self, ve: Vehicle):
         '''
         Constraint to ensure the number of vehicles used between warehouses and restaurants is less than or equal to the number of vehicles available.
         '''
-        self.problem += lpSum(self.warehouse_restaurant_logistics[(w.name, r.name, ve.company, ve.name)] for w in self.warehouses for r in self.restaurants) >= ve.number_available
+        self.problem += lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] for w in self.warehouses for r in self.restaurants) >= ve.number_available
 
     def print_results(self):
         if self.problem.status == 1:
@@ -124,41 +123,42 @@ class SupplyChainOptimisation:
                 for w in self.warehouses:
                     for ve in self.vehicles:
                         if self.supply[(v.name, w.name, ve.company, ve.name)].varValue > 0:
-                            print(f"Supply {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units from {v.name} at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * v.cost_per_kg} and delivered to warehouse {w.name}.")
-                            print(f"Inventory at warehouse {w.name} is {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * w.storage_cost_per_kg}.")
-                            print(f"Transport costs of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
+                            logger.info(f"Supply {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units from {v.name} at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * v.cost_per_kg} and delivered to warehouse {w.name}.")
+                            logger.info(f"Inventory at warehouse {w.name} is {self.supply[(v.name, w.name, ve.company, ve.name)].varValue} units at a cost of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * w.storage_cost_per_kg}.")
+                            logger.info(f"Transport costs of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
 
             for w in self.warehouses:
                 for r in self.restaurants:
                     for ve in self.vehicles:
                         if self.distribution[(w.name, r.name, ve.company, ve.name)].varValue > 0:
-                            print(f"Transport costs of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")
+                            logger.info(f"Transport costs of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.cost_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")
 
             for v in self.vendors:
                 for w in self.warehouses:
                     for ve in self.vehicles:
                         if self.supply[(v.name, w.name, ve.company, ve.name)].varValue > 0:
-                            print(f"CO2 emissions of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
+                            logger.info(f"CO2 emissions of {self.supply[(v.name, w.name, ve.company, ve.name)].varValue * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {v.name} to {w.name} using {ve.name} from {ve.company}.")
 
             for w in self.warehouses:
                 for r in self.restaurants:
                     for ve in self.vehicles:
                         if self.distribution[(w.name, r.name, ve.company, ve.name)].varValue > 0:
-                            print(f"CO2 emissions of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")            
+                            logger.info(f"CO2 emissions of {self.distribution[(w.name, r.name, ve.company, ve.name)].varValue * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)]} from {w.name} to {r.name} using {ve.name} from {ve.company}.")            
 
-            print(f"Total cost: {self.problem.objective.value()}")
+            logger.info(f"Total cost: {self.problem.objective.value()}")
         else:
-            print("No optimal solution found.")
+            logger.warning("No optimal solution found.")
 
     def solve(self):
+        logger.info("Building cost minimising optimisation problem.")
         total_cost = (
             self.get_supply_cost() + 
             self.get_supply_to_warehouse_cost() +
             self.get_warehouse_storage_cost() +
             self.get_warehouse_to_restaurant_cost() +
-            # self.get_restaurant_fixed_costs() +
             self.get_supply_to_warehouse_co2_emissions_cost() +
             self.get_warehouse_to_restaurant_co2_emissions_cost()
+            # TODO add in supplier co2 emissions cost
         )
         self.problem += total_cost
 
@@ -169,9 +169,13 @@ class SupplyChainOptimisation:
         self.add_warehouse_restaurant_constraints()
         self.add_vehicle_constraints()
 
+        logger.info(f"Solving optimisation for {len(self.problem._variables)} variables and {len(self.problem.constraints)} constraints.")
+        start_time = time.time()
+
         self.problem.solve()
 
-        self.print_results()
+        end_time = time.time()
+        logger.info(f"Optimiser solved in {end_time - start_time}.")
 
 
 if __name__ == "__main__":

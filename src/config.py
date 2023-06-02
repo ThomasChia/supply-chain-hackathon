@@ -1,15 +1,6 @@
-# vendors = [
-#     {"name": "Vendor 1", "cost": 10},
-#     {"name": "Vendor 2", "cost": 12},
-#     {"name": "Vendor 3", "cost": 8},
-#     # Add more vendors as needed
-# ]
+import os
 
-# warehouses = [
-#     {"name": "Warehouse 1", "transport_cost": 5, "storage_cost": 2},
-#     {"name": "Warehouse 2", "transport_cost": 4, "storage_cost": 3},
-#     # Add more warehouses as needed
-# ]
+DEBUG = (os.getenv('DEBUG', 'False') == 'True')
 
 vendors = {
     "vendor1": {"cost_per_kg": 10, "capacity": 100},

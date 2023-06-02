@@ -22,7 +22,7 @@ class VehicleReader(Reader):
                 logistics.vehicle as name,
                 logistics.locations as locations,
                 logistics.no___available as number_available,
-                logistics.capacity__tonnes_ / 1000 as capacity,
+                logistics.capacity__tonnes_ * 1000 as capacity,
                 logistics.price_per_tonne___km__gbp_ / 1000 as cost_per_kg_per_km,
                 co2_emissions.co2_emissions__kwh_tkm_ / 1000 as co2_emissions_per_kg_per_km
         FROM logistics

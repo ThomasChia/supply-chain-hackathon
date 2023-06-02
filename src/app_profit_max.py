@@ -1,7 +1,7 @@
 import code
 import logging
 from logs import setup_logs
-from planners.cost_minimiser import CostMinimiserPlanner
+from planners.profit_maximiser import ProfitMaximiserPlanner
 from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
@@ -25,12 +25,12 @@ if __name__ == '__main__':
                                                                                                                                                                                                        
     """)
 
-    planner = CostMinimiserPlanner(vendors_input=[],
-                                   warehouses_input=[],
-                                   restaurants_input=[],
-                                   vehicles_input=[],
-                                   supplier_warehouse_distance_input=[],
-                                   warehouse_restaurant_distance_input=[])
+    planner = ProfitMaximiserPlanner(vendors_input=[],
+                                     warehouses_input=[],
+                                     restaurants_input=[],
+                                     vehicles_input=[],
+                                     supplier_warehouse_distance_input=[],
+                                     warehouse_restaurant_distance_input=[])
     planner.run()
           
     code.interact(local=locals())

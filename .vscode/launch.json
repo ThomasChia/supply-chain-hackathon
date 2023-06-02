@@ -14,28 +14,27 @@
             "justMyCode": true,
             "env": {
                 "CSCUSER": "csc_admin",
-                "CSCPASSWORD": "7!dCA%26cbQ",
+                "CSCPASSWORD": "iXMRMKWNQbvdCCg19zVy",
                 "CSCHOST": "supply-chain.cspxerxok0ew.eu-west-2.rds.amazonaws.com",
-                "CSCPORT": "5432"
+                "CSCPORT": "5432",
+                "DEBUG": "True"
             },
         },
         {
-            "name": "Python: Optimiser",
+            "name": "Python: Run Profit Max App",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/optimisers/optimiser.py",
+            "program": "${workspaceFolder}/src/app_profit_max.py",
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "CSCUSER": "csc_admin",
+                "CSCPASSWORD": "iXMRMKWNQbvdCCg19zVy",
+                "CSCHOST": "supply-chain.cspxerxok0ew.eu-west-2.rds.amazonaws.com",
+                "CSCPORT": "5432",
+                "DEBUG": "True"
+            },
         },
-        {
-            "name": "Python: Profit Maximiser",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/src/optimisers/profit_maximiser.py",
-            "cwd": "${workspaceFolder}/src",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }
     ]
 }
