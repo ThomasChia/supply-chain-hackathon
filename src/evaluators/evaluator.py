@@ -18,6 +18,7 @@ class Evaluator:
         """
         self.remove_non_active_sites()
         self.adjust_inflows_and_outflows()
+        self.convert_to_supply_chain()
 
     def remove_non_active_sites(self):
         for edge in self.supply_chain:
@@ -50,12 +51,12 @@ class Evaluator:
             if edge.target_id not in connector_edges:
                 connector_edges[edge.target_id] = [edge]
             else:
-                connector_edges[edge.target_id] = connector_edges[edge.target_id].extend([edge])
+                connector_edges[edge.target_id].extend([edge])
         elif edge.stage == 'distribution':
             if edge.source_id not in connector_edges:
                 connector_edges[edge.source_id] = [edge]
             else:
-                connector_edges[edge.source_id] = connector_edges[edge.source_id].extend([edge])
+                connector_edges[edge.source_id].extend([edge])
         return connector_edges
     
     def equate_amounts(self):
@@ -96,3 +97,6 @@ class Evaluator:
         for edge in edges_list:
             if (edge.source_id, edge.source_name, edge.target_id, edge.target_name) == (edge_to_match.source_id, edge_to_match.source_name, edge_to_match.target_id, edge_to_match.target_name):
                 return edge
+            
+    def convert_to_supply_chain(self):
+        self.new_supply_chain = SupplyChain(self.new_supply_chain)
