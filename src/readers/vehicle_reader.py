@@ -18,17 +18,18 @@ class VehicleReader(Reader):
 
     def build_query(self):
         query = f"""
-        SELECT logistics.company_name as company,
-                logistics.vehicle as name,
-                logistics.locations as locations,
-                logistics.no___available as number_available,
-                logistics.capacity__tonnes_ * 1000 as capacity,
-                logistics.price_per_tonne___km__gbp_ / 1000 as cost_per_kg_per_km,
-                co2_emissions.co2_emissions__kwh_tkm_ / 1000 as co2_emissions_per_kg_per_km
-        FROM logistics
-        LEFT JOIN co2_emissions
-        ON logistics.vehicle = co2_emissions.vehicle_type
-        WHERE logistics.no___available > 0
+        SELECT depot.name as company,
+               vehicle.type as name,
+               depot.locations as locations,
+               logisticcs.no_available as number_available,
+               logisticcs.capacity_tonnes_ * 1000 as capacity,
+               logisticcs.price_per_tonne / 1000 as cost_per_kg_per_km,
+               vehicle.emissions_per_kg_km as co2_emissions_per_kg_per_km
+        FROM logisticcs
+        LEFT JOIN depot ON logisticcs.depot_id = depot.id
+        LEFT JOIN vehicle ON logisticcs.vehicle_id = vehicle.id
+        WHERE logisticcs.no_available > 0
+        AND depot.is_active = TRUE
         """
         self.query = query
 
