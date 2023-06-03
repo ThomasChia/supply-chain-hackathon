@@ -24,11 +24,11 @@ class WarehouseReader(Reader):
                warehouse_transient.freezer_cap_sq_ft as inventory_capacity,
                ((warehouse_transient.storage_cost_sq_ft / 7) / 2) as storage_cost_per_kg,
                warehouse.lat as lat,
-               warehouse.lon as lon
+               warehouse.long as long
         FROM warehouse
         LEFT JOIN distributor ON warehouse.distributor_id = distributor.id
         LEFT JOIN warehouse_transient ON warehouse_transient.name = warehouse.name
-        WHERE warehouse.is_active = TRUE
+        WHERE distributor.is_active = TRUE
         """
         self.query = query
 

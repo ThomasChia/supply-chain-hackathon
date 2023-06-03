@@ -22,8 +22,8 @@ class VehicleReader(Reader):
                vehicle.type as name,
                depot.locations as locations,
                logisticcs.no_available as number_available,
-               logisticcs.capacity_tonnes_ * 1000 as capacity,
-               logisticcs.price_per_tonne / 1000 as cost_per_kg_per_km,
+               logisticcs.capacity_tonnes * 1000 as capacity,
+               logisticcs.price_per_tone / 1000 as cost_per_kg_per_km,
                vehicle.emissions_per_kg_km as co2_emissions_per_kg_per_km
         FROM logisticcs
         LEFT JOIN depot ON logisticcs.depot_id = depot.id

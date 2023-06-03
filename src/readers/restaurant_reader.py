@@ -27,7 +27,7 @@ class RestaurantReader(Reader):
                description,
                lat,
                long
-        FROM retaurant
+        FROM restaurant
         """
         self.query = query
 

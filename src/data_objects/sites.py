@@ -2,15 +2,18 @@ from dataclasses import dataclass
 
 @dataclass
 class Vendor:
+    id: int
     name: str
     company: str
     location: str
     capacity: int
     additional_capacity: int
     sla_period: int
-    onboarding_period: int
+    # onboarding_period: int
     cost_per_kg: float
     co2_emissions_per_kg: float
+    lat: float
+    long: float
 
 @dataclass
 class VehicleDepots:
@@ -26,6 +29,8 @@ class Warehouse:
     onboarding_period: int
     inventory_capacity: int
     storage_cost_per_kg: float
+    lat: float
+    long: float
 
 @dataclass
 class Restaurant:

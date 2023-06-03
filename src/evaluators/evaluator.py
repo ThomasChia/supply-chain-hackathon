@@ -5,7 +5,7 @@ from typing import Dict, List
 logger = logging.getLogger(__name__)
 
 class Evaluator:
-    def __init__(self, supply_chain: SupplyChain, active_sites: list[tuple]):
+    def __init__(self, supply_chain: SupplyChain, active_sites: list):
         self.supply_chain = supply_chain.supply_chain
         self.active_sites = active_sites
         self.new_supply_chain: SupplyChain = []
