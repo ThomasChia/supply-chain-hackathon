@@ -32,7 +32,7 @@ class Evaluator:
         self.replace_connector_edges()
 
     def edge_is_active(self, edge: Edge):
-        return ((edge.source_name, edge.source_id) in self.active_sites) and ((edge.target_name, edge.target_id) in self.active_sites)
+        return (edge.source_id in self.active_sites) and (edge.target_id in self.active_sites)
     
     def at_supply_stage(self, edge: Edge):
         return edge.stage == 'supply'
@@ -95,7 +95,7 @@ class Evaluator:
 
     def get_matching_edge(self, edges_list: List[Edge], edge_to_match: Edge):
         for edge in edges_list:
-            if (edge.source_id, edge.source_name, edge.target_id, edge.target_name) == (edge_to_match.source_id, edge_to_match.source_name, edge_to_match.target_id, edge_to_match.target_name):
+            if (edge.source_id, edge.target_id) == (edge_to_match.source_id, edge_to_match.target_id):
                 return edge
             
     def convert_to_supply_chain(self):
