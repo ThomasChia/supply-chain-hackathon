@@ -18,14 +18,17 @@ class WarehouseReader(Reader):
 
     def build_query(self):
         query = f"""
-        SELECT site.warehouse_id as name,
-                st_astext(site.coords) as location,
-                company_info.onboarding_time__days_ as onboarding_period,
-                site.available_freezer_capacity__sq_ft_ as inventory_capacity,
-                ((site.cost_per_sq_ft_of_storage_per_week__gbp_ / 7) / 2) as storage_cost_per_kg
-        FROM distribution_warehouses as site
-        INNER JOIN distribution_companies as company_info
-            ON site.company_name = company_info.company_name
+        SELECT warehouse.name as name,
+               warehouse.city as location,
+               distributor.onboarding_time as onboarding_period,
+               warehouse_transient.freezer_cap_sq_ft as inventory_capacity,
+               ((warehouse_transient.storage_cost_sq_ft / 7) / 2) as storage_cost_per_kg,
+               warehouse.lat as lat,
+               warehouse.lon as lon
+        FROM warehouse
+        LEFT JOIN distributor ON warehouse.distributor_id = distributor.id
+        LEFT JOIN warehouse_transient ON warehouse_transient.name = warehouse.name
+        WHERE warehouse.is_active = TRUE
         """
         self.query = query
 

@@ -25,8 +25,8 @@ class VendorReader(Reader):
                supplier.onboarding_period as onboarding_period,
                supplier.price_kg as cost_per_kg,
                supplier.co2_emissions_per_kg as co2_emissions_per_kg
-        FROM supplier
-        LEFT JOIN farm
+        FROM farm
+        LEFT JOIN supplier
         ON farm.supplier_id = supplier.id
         WHERE location.farm_id != 'nan'
         AND supplier.is_active = TRUE
