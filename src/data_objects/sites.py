@@ -29,6 +29,7 @@ class Warehouse:
 
 @dataclass
 class Restaurant:
+    id: int
     name: str
     location: str
     restaurant_demand: float
@@ -36,3 +37,6 @@ class Restaurant:
     daily_total_demand: float
     daily_profit: float
     fixed_cost: float
+    description: str
+    lat: float
+    long: float
