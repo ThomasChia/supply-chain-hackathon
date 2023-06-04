@@ -1,5 +1,13 @@
 import logging
 from output.output import Edge, SupplyChain
+from output.outputter import OptimisationOutputter, JSONOutputter
+from readers.restaurant_reader import RestaurantReader
+from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
+from readers.vehicle_reader import VehicleReader
+from readers.vendor_reader import VendorReader
+from readers.warehouse_reader import WarehouseReader
+from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
+from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 from typing import Dict, List
 
 logger = logging.getLogger(__name__)
@@ -8,8 +16,10 @@ class Evaluator:
     def __init__(self, supply_chain: SupplyChain, active_sites: list):
         self.supply_chain = supply_chain.supply_chain
         self.active_sites = active_sites
-        self.new_supply_chain: SupplyChain = []
+        self.supply_chain_updating: list = []
+        self.new_supply_chain: SupplyChain = None
         self.connector_edges: Dict[str: [Edge]] = {}
+        self.json_output = {}
 
     def calculate_new_supply_chain(self):
         """
@@ -19,12 +29,13 @@ class Evaluator:
         self.remove_non_active_sites()
         self.adjust_inflows_and_outflows()
         self.convert_to_supply_chain()
+        self.create_output()
 
     def remove_non_active_sites(self):
         for edge in self.supply_chain:
             if self.edge_is_active(edge):
-                self.new_supply_chain.append(edge)
-        logger.info(f"Removed {len(self.supply_chain) - len(self.new_supply_chain)} edges from supply chain.")
+                self.supply_chain_updating.append(edge)
+        logger.info(f"Removed {len(self.supply_chain) - len(self.supply_chain_updating)} edges from supply chain.")
     
     def adjust_inflows_and_outflows(self):
         self.get_connector_edges()
@@ -42,7 +53,7 @@ class Evaluator:
     
     def get_connector_edges(self):
         connector_edges = {}
-        for edge in self.new_supply_chain:
+        for edge in self.supply_chain_updating:
             connector_edges = self.add_connector_edge(edge, connector_edges)
         self.connector_edges = connector_edges
 
@@ -81,7 +92,7 @@ class Evaluator:
                 raise Exception("Inflow greater than outflow.")
             
     def replace_connector_edges(self):
-        for edge in self.new_supply_chain:
+        for edge in self.supply_chain_updating:
             edge = self.replace_connector_edge(edge)
 
     def replace_connector_edge(self, edge: Edge) -> Edge:
@@ -99,5 +110,32 @@ class Evaluator:
                 return edge
             
     def convert_to_supply_chain(self):
-        self.new_supply_chain = SupplyChain(self.new_supply_chain)
+        self.new_supply_chain = SupplyChain(self.supply_chain_updating)
         self.new_supply_chain.get_totals()
+
+    def create_output(self):
+        self.get_data()
+        supply_chain_plan = self.new_supply_chain.plan_to_list()
+        json_outputter = JSONOutputter(supply_chain_plan=supply_chain_plan,
+                                       vendors=self.vendors,
+                                       warehouses=self.warehouses,
+                                       restaurants=self.restaurants)
+        self.json_output = json_outputter.create_json()
+
+    def get_data(self):
+        vendors = VendorReader()
+        vendors.run()
+        self.vendors = vendors.data
+        logger.info(f"Read {len(self.vendors)} vendors from db.")
+
+        warehouses = WarehouseReader()
+        warehouses.run()
+        self.warehouses = warehouses.data
+        logger.info(f"Read {len(self.warehouses)} warehouses from db.")
+
+        restaurants = RestaurantReader()
+        restaurants.run()
+        self.restaurants = restaurants.data
+        logger.info(f"Read {len(self.restaurants)} restaurants from db.")
+
+        logger.info("Read all data.")

@@ -1,8 +1,11 @@
+from data_objects.flows import SupplierWarehouseDistance, WarehouseRestaurantDistance
+from data_objects.sites import Vendor, Warehouse, Restaurant
+from data_objects.vehicles import Vehicle
 import logging
 from optimisers.optimiser import SupplyChainOptimisation
 from optimisers.profit_maximiser import SupplyChainProfitMaximiser
 import os
-from output.outputter import OptimisationOutputter
+from output.outputter import OptimisationOutputter, JSONOutputter
 from output.output import SupplyChain
 from readers.restaurant_reader import RestaurantReader
 from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
@@ -12,6 +15,7 @@ from readers.warehouse_reader import WarehouseReader
 from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 import time
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -22,18 +26,19 @@ class CostMinimiserPlanner:
     PORT = os.getenv('CSCPORT')
 
     def __init__(self,
-                 vendors_input,
-                 warehouses_input,
-                 restaurants_input,
-                 vehicles_input,
-                 supplier_warehouse_distance_input,
-                 warehouse_restaurant_distance_input):
-        self.vendors_input = vendors_input
-        self.warehouses_input = warehouses_input
-        self.restaurants_input = restaurants_input
-        self.vehicles_input = vehicles_input
-        self.supplier_warehouse_distance_input = supplier_warehouse_distance_input
-        self.warehouse_restaurant_distance_input = warehouse_restaurant_distance_input
+                #  vendors_input,
+                #  warehouses_input,
+                #  restaurants_input,
+                #  vehicles_input,
+                #  supplier_warehouse_distance_input,
+                #  warehouse_restaurant_distance_input
+                 ):
+        self.vendors_input: List[Vendor] = None
+        self.warehouses_input: List[Warehouse] = None
+        self.restaurants_input: List[Restaurant] = None
+        self.vehicles_input: List[Vehicle] = None
+        self.supplier_warehouse_distance_input: List[SupplierWarehouseDistance] = None
+        self.warehouse_restaurant_distance_input: List[WarehouseRestaurantDistance] = None
         self.vendors = []
         self.warehouses = []
         self.restaurants = []
@@ -41,6 +46,7 @@ class CostMinimiserPlanner:
         self.supplier_warehouse_distance = []
         self.warehouse_restaurant_distance = []
         self.supply_chain: SupplyChain = None
+        self.json_output = None
 
     def run(self):
         self.get_data()
@@ -105,3 +111,10 @@ class CostMinimiserPlanner:
         outputter = OptimisationOutputter(optimiser=self.optimiser)
         self.supply_chain = outputter.create_table_output()
         self.supply_chain.get_totals()
+
+        supply_chain_plan = self.supply_chain.plan_to_list()
+        json_outputter = JSONOutputter(supply_chain_plan=supply_chain_plan,
+                                       vendors=self.vendors,
+                                       warehouses=self.warehouses,
+                                       restaurants=self.restaurants)
+        self.json_output = json_outputter.create_json()

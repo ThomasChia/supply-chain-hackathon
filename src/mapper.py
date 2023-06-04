@@ -1,6 +1,6 @@
 from typing import List
 from data_objects.flows import Distance
-from data_objects.sites import Vendor, Warehouse
+from data_objects.sites import Vendor, Warehouse, Restaurant
 from data_objects.vehicles import Vehicle
 
 class RouteCostMapper:
@@ -42,6 +42,23 @@ class WarehouseCostMapper:
     def get_cost_mapping(self, warehouses: List[Warehouse])  -> dict[str, float]:
         return {warehouse.name: warehouse.storage_cost_per_kg for warehouse in warehouses}
     
-# class SupplierEmissionsMapper:
-#     def __init__(self, suppliers: List[Vendor]):
-#         self.supplier_mapping
+class SupplierGeometryMapper:
+    def __init__(self, suppliers: List[Vendor]):
+        self.supplier_geometry_mapping = self.get_geometry_mapping(suppliers)
+
+    def get_geometry_mapping(self, suppliers: List[Vendor]):
+        return {supplier.name: [supplier.lat, supplier.long] for supplier in suppliers}
+    
+class WarehouseGeometryMapper:
+    def __init__(self, warehouses: List[Warehouse]):
+        self.warehouse_geometry_mapping = self.get_geometry_mapping(warehouses)
+
+    def get_geometry_mapping(self, warehouses: List[Warehouse]):
+        return {warehouse.name: [warehouse.lat, warehouse.long] for warehouse in warehouses}
+    
+class RestaurantGeometryMapper:
+    def __init__(self, restaurants: List[Restaurant]):
+        self.restaurant_geometry_mapping = self.get_geometry_mapping(restaurants)
+
+    def get_geometry_mapping(self, restaurants: List[Restaurant]):
+        return {restaurant.name: [restaurant.lat, restaurant.long] for restaurant in restaurants}

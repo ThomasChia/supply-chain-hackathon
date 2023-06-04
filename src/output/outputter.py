@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 import logging
+from mapper import SupplierGeometryMapper, WarehouseGeometryMapper, RestaurantGeometryMapper
 from optimisers.optimiser import SupplyChainOptimisation
 from output.output import (VendorOutput,
                            WarehouseOutput,
@@ -144,3 +145,61 @@ class OptimisationOutputter(Outputter):
         emissions = defaultdict(float)
         for flow in flow_list:
             amounts[flow.source] += flow.amount
+
+class JSONOutputter:
+    def __init__(self, supply_chain_plan, vendors, warehouses, restaurants):
+        self.supply_chain_plan = supply_chain_plan
+        self.supplier_geometry = SupplierGeometryMapper(vendors)
+        self.warehouses = WarehouseGeometryMapper(warehouses)
+        self.restaurants = RestaurantGeometryMapper(restaurants)
+
+    def create_json(self):
+        output = []
+        for linestring in self.supply_chain_plan['supply_chain']:
+            source_geoms = self.get_source_geometry(linestring)
+            target_geoms = self.get_target_geometry(linestring)
+
+            single_output = {}
+            single_output['type'] = 'Feature'
+            single_output['geometry'] = {"type": "LineString", "coordinates": [source_geoms, target_geoms]}
+            single_output['properties'] = linestring
+            output.append(single_output)
+        return output
+    
+    def get_source_geometry(self, linestring):
+        if linestring['stage'] == 'supply':
+            return self.supplier_geometry.supplier_geometry_mapping[linestring['source_id']]
+        elif linestring['stage'] == 'distribution':
+            return self.warehouses.warehouse_geometry_mapping[linestring['source_id']]
+
+    def get_target_geometry(self, linestring):
+        if linestring['stage'] == 'supply':
+            return self.warehouses.warehouse_geometry_mapping[linestring['target_id']]
+        elif linestring['stage'] == 'distribution':
+            return self.restaurants.restaurant_geometry_mapping[linestring['target_id']]
+    
+
+linestring = [{
+    "type": "Feature",
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [[0, 0], [1, 1]]
+    },
+    "properties": {
+        'stage': 'supply',
+        'source_id': 'F005', 
+        'source_name': 'F005', 
+        'source_type': 'farm', 
+        'source_cost': 1760.0000000000002, 
+        'source_co2_emissions': 6400.0, 
+        'target_id': 'WH024', 
+        'target_name': 'WH024', 
+        'target_type': 'warehouse', 
+        'target_cost': 0.0, 
+        'target_co2_emissions': 0, 
+        'vehicle_company': 'Bird Logistics UK', 
+        'vehicle_type': 'Refrigerated Electric Van', 
+        'amount': 800.0, 'transport_cost': 2043.04416, 
+        'transport_co2_emissions': 7.168576
+    }
+}]

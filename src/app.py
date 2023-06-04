@@ -27,12 +27,14 @@ if __name__ == '__main__':
                                                                                                                                                                                                        
     """)
 
-    planner = CostMinimiserPlanner(vendors_input=[],
-                                   warehouses_input=[],
-                                   restaurants_input=[],
-                                   vehicles_input=[],
-                                   supplier_warehouse_distance_input=[],
-                                   warehouse_restaurant_distance_input=[])
+    planner = CostMinimiserPlanner(
+        # vendors_input=[],
+        # warehouses_input=[],
+        # restaurants_input=[],
+        # vehicles_input=[],
+        # supplier_warehouse_distance_input=[],
+        # warehouse_restaurant_distance_input=[]
+        )
     planner.run()
     planner_supply_chain = planner.supply_chain.plan_to_list()
     test_supply_chain = SupplyChain.list_to_plan(planner_supply_chain['supply_chain'])
@@ -47,6 +49,7 @@ if __name__ == '__main__':
                                                                            'WH003',
                                                                            'WH005', 
                                                                            'WH004', 
+                                                                           'WH024',
                                                                            'R001', 
                                                                            'R002', 
                                                                            'R003', 
@@ -77,7 +80,7 @@ if __name__ == '__main__':
                                                                            'R028', 
                                                                            'R029', 
                                                                            'R030'])
-                                                                           
+
   
     evaluator.calculate_new_supply_chain()
     evaluator_supply_chain = evaluator.new_supply_chain.plan_to_list()
