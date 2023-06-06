@@ -30,7 +30,7 @@ class VendorReader(Reader):
         FROM farm
         LEFT JOIN supplier
         ON farm.supplier_id = supplier.id
-        AND supplier.is_active = TRUE
+        WHERE supplier.is_active = TRUE
         """
         self.query = query
 

@@ -164,6 +164,7 @@ class JSONOutputter:
             single_output['geometry'] = {"type": "LineString", "coordinates": [source_geoms, target_geoms]}
             single_output['properties'] = linestring
             output.append(single_output)
+        output.append(self.supply_chain_plan['metrics'])
         return output
     
     def get_source_geometry(self, linestring):
@@ -178,28 +179,3 @@ class JSONOutputter:
         elif linestring['stage'] == 'distribution':
             return self.restaurants.restaurant_geometry_mapping[linestring['target_id']]
     
-
-linestring = [{
-    "type": "Feature",
-    "geometry": {
-        "type": "LineString",
-        "coordinates": [[0, 0], [1, 1]]
-    },
-    "properties": {
-        'stage': 'supply',
-        'source_id': 'F005', 
-        'source_name': 'F005', 
-        'source_type': 'farm', 
-        'source_cost': 1760.0000000000002, 
-        'source_co2_emissions': 6400.0, 
-        'target_id': 'WH024', 
-        'target_name': 'WH024', 
-        'target_type': 'warehouse', 
-        'target_cost': 0.0, 
-        'target_co2_emissions': 0, 
-        'vehicle_company': 'Bird Logistics UK', 
-        'vehicle_type': 'Refrigerated Electric Van', 
-        'amount': 800.0, 'transport_cost': 2043.04416, 
-        'transport_co2_emissions': 7.168576
-    }
-}]

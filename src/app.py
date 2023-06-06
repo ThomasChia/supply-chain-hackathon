@@ -29,8 +29,6 @@ if __name__ == '__main__':
 
     planner = CostMinimiserPlanner()
     planner.run()
-    # planner_supply_chain = planner.supply_chain.plan_to_list()
-    # test_supply_chain = SupplyChain.list_to_plan(planner_supply_chain['supply_chain'])
 
     evaluator = Evaluator(supply_chain=planner.supply_chain, active_sites=['F005',
                                                                            'F014',
