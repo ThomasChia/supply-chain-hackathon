@@ -155,6 +155,7 @@ class JSONOutputter:
 
     def create_json(self):
         output = []
+        restaurant_counter = defaultdict(int)
         for linestring in self.supply_chain_plan['supply_chain']:
             source_geoms = self.get_source_geometry(linestring)
             target_geoms = self.get_target_geometry(linestring)
@@ -164,7 +165,13 @@ class JSONOutputter:
             single_output['geometry'] = {"type": "LineString", "coordinates": [source_geoms, target_geoms]}
             single_output['properties'] = linestring
             output.append(single_output)
-        output.append(self.supply_chain_plan['metrics'])
+        
+            if linestring['stage']=='distribution':
+                restaurant_counter[linestring['target_id']] += linestring['amount']
+        metrics = {'metrics': self.supply_chain_plan['metrics']}
+        restaurant_supply = {'restaurant_supply': restaurant_counter}
+        output.append(metrics)
+        output.append(restaurant_supply)
         return output
     
     def get_source_geometry(self, linestring):
