@@ -3,6 +3,7 @@ from output.output import Edge, SupplyChain
 from output.outputter import OptimisationOutputter, JSONOutputter
 from readers.restaurant_reader import RestaurantReader
 from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
+from readers.supply_chain_reader import SupplyChainReader
 from readers.vehicle_reader import VehicleReader
 from readers.vendor_reader import VendorReader
 from readers.warehouse_reader import WarehouseReader
@@ -15,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 class Evaluator:
     def __init__(self, supply_chain: SupplyChain, active_sites: list):
-        self.supply_chain = supply_chain.supply_chain
+        # self.supply_chain = supply_chain.supply_chain
+        self.supply_chain = self.read_db_supply_chain()
         self.active_sites = active_sites
         self.supply_chain_updating: list = []
         self.new_supply_chain: SupplyChain = None
@@ -140,3 +142,8 @@ class Evaluator:
         logger.info(f"Read {len(self.restaurants)} restaurants from db.")
 
         logger.info("Read all data.")
+
+    def read_db_supply_chain(self):
+        supply_chain = SupplyChainReader()
+        supply_chain.run()
+        return supply_chain.data.supply_chain
