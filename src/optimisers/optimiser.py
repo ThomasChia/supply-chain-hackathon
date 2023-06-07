@@ -159,7 +159,6 @@ class SupplyChainOptimisation:
             self.get_supplier_co2_emissions_cost() +
             self.get_supply_to_warehouse_co2_emissions_cost() +
             self.get_warehouse_to_restaurant_co2_emissions_cost()
-            # TODO add in supplier co2 emissions cost
         )
         self.problem += total_cost
 

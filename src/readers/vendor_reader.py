@@ -46,3 +46,32 @@ class VendorReader(Reader):
     def read_query(self):
         vendors = self.connection.reader(self.query)
         self.data = [Vendor(**vendor) for vendor in vendors]
+
+
+class VendorIDReader(Reader):
+    def __init__(self, suppliers):
+        self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
+        self.query = ""
+        self.suppliers = suppliers
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
+
+    def build_query(self):
+        suppliers_list = super().list_to_sql(self.suppliers)
+        suppliers_filter = '' if suppliers_list == '' else f"WHERE distributor.id in {suppliers_list}"
+
+        query = f"""
+        SELECT farm.name
+        FROM farm
+        LEFT JOIN supplier
+        ON farm.supplier_id = supplier.id
+        {suppliers_filter}
+        """
+        self.query = query
+
+    def read_query(self):
+        vendor_ids = self.connection.reader(self.query)
+        self.data = [vendor_id for vendor_id in vendor_ids]

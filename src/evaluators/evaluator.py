@@ -5,8 +5,8 @@ from readers.restaurant_reader import RestaurantReader
 from readers.supplier_warehouse_distances_reader import SupplierWarehouseDistanceReader
 from readers.supply_chain_reader import SupplyChainReader
 from readers.vehicle_reader import VehicleReader
-from readers.vendor_reader import VendorReader
-from readers.warehouse_reader import WarehouseReader
+from readers.vendor_reader import VendorReader, VendorIDReader
+from readers.warehouse_reader import WarehouseReader, WarehouseIDReader
 from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 from readers.warehouse_restaurant_distances_reader import WarehouseRestaurantDistanceReader
 import time
@@ -15,10 +15,12 @@ from typing import Dict, List
 logger = logging.getLogger(__name__)
 
 class Evaluator:
-    def __init__(self, supply_chain: SupplyChain, active_sites: list):
-        # self.supply_chain = supply_chain.supply_chain
+    def __init__(self, depots: list, suppliers: list, distributors: list):
         self.supply_chain = self.read_db_supply_chain()
-        self.active_sites = active_sites
+        self.inactive_depots = depots
+        self.inactive_suppliers = suppliers
+        self.inactive_distributors = distributors
+        self.inactive_sites = self.get_inactive_sites()
         self.supply_chain_updating: list = []
         self.new_supply_chain: SupplyChain = None
         self.connector_edges: Dict[str: [Edge]] = {}
@@ -26,15 +28,15 @@ class Evaluator:
 
     def calculate_new_supply_chain(self):
         """
-        This method takes the previous supply chain and updates it based on which sites are active.
+        This method takes the previous supply chain and updates it based on which sites are inactive.
         It returns a new supply chain object.
         """
-        self.remove_non_active_sites()
+        self.remove_inactive_sites()
         self.adjust_inflows_and_outflows()
         self.convert_to_supply_chain()
         self.create_output()
 
-    def remove_non_active_sites(self):
+    def remove_inactive_sites(self):
         for edge in self.supply_chain:
             if self.edge_is_active(edge):
                 self.supply_chain_updating.append(edge)
@@ -46,7 +48,7 @@ class Evaluator:
         self.replace_connector_edges()
 
     def edge_is_active(self, edge: Edge):
-        return (edge.source_id in self.active_sites) and (edge.target_id in self.active_sites)
+        return (edge.source_id not in self.inactive_sites) and (edge.target_id not in self.inactive_sites)
     
     def at_supply_stage(self, edge: Edge):
         return edge.stage == 'supply'
@@ -124,6 +126,21 @@ class Evaluator:
                                        warehouses=self.warehouses,
                                        restaurants=self.restaurants)
         self.json_output = json_outputter.create_json()
+
+    def get_inactive_sites(self):
+        vendor_ids = VendorIDReader(self.inactive_suppliers)
+        vendor_ids.run()
+        inactive_suppliers = vendor_ids.data
+
+        warehouse_ids = WarehouseIDReader(self.inactive_distributors)
+        warehouse_ids.run()
+        inactive_warehouses = warehouse_ids.data
+
+        inactive_sites = inactive_suppliers.extend(inactive_warehouses)
+        if inactive_sites is None:
+            inactive_sites = ['']
+
+        return inactive_sites
 
     def get_data(self):
         vendors = VendorReader()

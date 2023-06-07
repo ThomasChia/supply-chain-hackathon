@@ -35,6 +35,33 @@ class WarehouseReader(Reader):
     def read_query(self):
         warehouses = self.connection.reader(self.query)
         self.data = [Warehouse(**warehouse) for warehouse in warehouses]
+
+class WarehouseIDReader(Reader):
+    def __init__(self, distributors):
+        self.connection = DbConnection(Reader.USER, Reader.PASSWORD, Reader.HOST, Reader.PORT)
+        self.query = ""
+        self.distributors = distributors
+        self.data = []
+
+    def run(self):
+        self.build_query()
+        self.read_query()
+
+    def build_query(self):
+        distributor_list = super().list_to_sql(self.distributors)
+        distributor_filter = '' if distributor_list == '' else f"WHERE distributor.id in {distributor_list}"
+        query = f"""
+        SELECT warehouse.name
+        FROM warehouse
+        LEFT JOIN distributor
+        ON warehouse.distributor_id = distributor.id
+        {distributor_filter}
+        """
+        self.query = query
+
+    def read_query(self):
+        warehouse_ids = self.connection.reader(self.query)
+        self.data = [warehouse_id for warehouse_id in warehouse_ids]
     
 
 if __name__ == '__main__':
