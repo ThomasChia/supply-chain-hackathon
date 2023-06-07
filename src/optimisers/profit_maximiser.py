@@ -18,7 +18,9 @@ class SupplyChainProfitMaximiser:
                  restaurants: List[Restaurant],
                  vehicles: List[Vehicle], 
                  supplier_warehouse_distances: List[SupplierWarehouseDistance], 
-                 warehouse_restaurant_distances: List[WarehouseRestaurantDistance]):
+                 warehouse_restaurant_distances: List[WarehouseRestaurantDistance],
+                 cost_co2_split=0.5):
+        self.cost_co2_split = cost_co2_split
         self.vendors = vendors
         self.warehouses = warehouses
         self.restaurants = restaurants
@@ -59,6 +61,9 @@ class SupplyChainProfitMaximiser:
     def get_co2_emissions_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles) + \
                 lpSum(self.distribution[(w.name, r.name, ve.company, ve.name)] * self.warehouse_restaurant_mapper.distance_mapping[w.name, r.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for w in self.warehouses for r in self.restaurants for ve in self.vehicles)
+    
+    def get_supplier_co2_emissions_cost(self):
+        return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_cost_mapper.supplier_co2_mapping[v.name] for v in self.vendors for w in self.warehouses for ve in self.vehicles) 
     
     def get_supply_to_warehouse_co2_emissions_cost(self):
         return lpSum(self.supply[(v.name, w.name, ve.company, ve.name)] * self.supplier_warehouse_mapper.distance_mapping[v.name, w.name] * self.vehicle_mapper.co2_mapping[(ve.company, ve.name)] for v in self.vendors for w in self.warehouses for ve in self.vehicles)
@@ -176,16 +181,17 @@ class SupplyChainProfitMaximiser:
     def solve(self):
         logger.info("Building profit maximising optimisation problem.")
         total_profit = (
-            self.get_daily_chicken_sales() +
+            (self.get_daily_chicken_sales() +
             self.get_daily_non_chicken_sales() -
             self.get_supply_cost() -
             self.get_supply_to_warehouse_cost() -
             self.get_warehouse_storage_cost() -
             self.get_warehouse_to_restaurant_cost() -
-            self.get_restaurant_fixed_costs()
+            self.get_restaurant_fixed_costs()) * self.cost_co2_split + 
+            (self.get_supplier_co2_emissions_cost() +
+            self.get_supply_to_warehouse_co2_emissions_cost() +
+            self.get_warehouse_to_restaurant_co2_emissions_cost()) * (1 - self.cost_co2_split)
         )
-        #     self.get_supply_to_warehouse_co2_emissions_cost() +
-        #     self.get_warehouse_to_restaurant_co2_emissions_cost()
         self.problem += total_profit
 
         self.add_vendor_constraints()

@@ -27,7 +27,7 @@ if __name__ == '__main__':
                                                                                                                                                                                                        
     """)
 
-    planner = CostMinimiserPlanner()
+    planner = CostMinimiserPlanner(cost_co2_split=1)
     planner.run()
 
     evaluator = Evaluator(depots=[], distributors=[], suppliers=[])

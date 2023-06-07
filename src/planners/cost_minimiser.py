@@ -26,6 +26,7 @@ class CostMinimiserPlanner:
     PORT = os.getenv('CSCPORT')
 
     def __init__(self,
+                cost_co2_split=0.5,
                 #  vendors_input,
                 #  warehouses_input,
                 #  restaurants_input,
@@ -33,6 +34,7 @@ class CostMinimiserPlanner:
                 #  supplier_warehouse_distance_input,
                 #  warehouse_restaurant_distance_input
                  ):
+        self.cost_co2_split = cost_co2_split
         self.vendors_input: List[Vendor] = None
         self.warehouses_input: List[Warehouse] = None
         self.restaurants_input: List[Restaurant] = None
@@ -87,7 +89,9 @@ class CostMinimiserPlanner:
         logger.info("Read all data.")
 
     def optimise(self):
-        self.optimiser = SupplyChainOptimisation(vendors=self.vendors,
+        self.optimiser = SupplyChainOptimisation(
+                                                 cost_co2_split=self.cost_co2_split,
+                                                 vendors=self.vendors,
                                                  warehouses=self.warehouses,
                                                  restaurants=self.restaurants,
                                                  vehicles=self.vehicles,
@@ -97,7 +101,8 @@ class CostMinimiserPlanner:
         self.optimiser.solve()
 
     def loose_optimise(self):
-        self.optimiser = SupplyChainProfitMaximiser(vendors=self.vendors,
+        self.optimiser = SupplyChainProfitMaximiser(cost_co2_split=self.cost_co2_split,
+                                                    vendors=self.vendors,
                                                     warehouses=self.warehouses,
                                                     restaurants=self.restaurants,
                                                     vehicles=self.vehicles,

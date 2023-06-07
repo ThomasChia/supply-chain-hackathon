@@ -11,12 +11,14 @@ logger = logging.getLogger(__name__)
 
 class SupplyChainOptimisation:
     def __init__(self,
+                 cost_co2_split,
                  vendors: List[Vendor],
                  warehouses: List[Warehouse], 
                  restaurants: List[Restaurant],
                  vehicles: List[Vehicle], 
                  supplier_warehouse_distances: List[SupplierWarehouseDistance], 
                  warehouse_restaurant_distances: List[WarehouseRestaurantDistance]):
+        self.cost_co2_split = cost_co2_split
         self.vendors = vendors
         self.warehouses = warehouses
         self.restaurants = restaurants
@@ -152,13 +154,13 @@ class SupplyChainOptimisation:
     def solve(self):
         logger.info("Building cost minimising optimisation problem.")
         total_cost = (
-            self.get_supply_cost() + 
+            (self.get_supply_cost() + 
             self.get_supply_to_warehouse_cost() +
             self.get_warehouse_storage_cost() +
-            self.get_warehouse_to_restaurant_cost() +
-            self.get_supplier_co2_emissions_cost() +
+            self.get_warehouse_to_restaurant_cost()) * self.cost_co2_split +
+            (self.get_supplier_co2_emissions_cost() +
             self.get_supply_to_warehouse_co2_emissions_cost() +
-            self.get_warehouse_to_restaurant_co2_emissions_cost()
+            self.get_warehouse_to_restaurant_co2_emissions_cost()) * (1 - self.cost_co2_split)
         )
         self.problem += total_cost
 
